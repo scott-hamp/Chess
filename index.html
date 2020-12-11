@@ -388,7 +388,7 @@ function HighlightSquare(position, type)
 
 function Move(piece, move)
 {
-	var moveObject = chess.move(move);
+	var moveObject = chess.move(move, { sloppy: true });
 
 	ClearHighlights();
 	HighlightSquare(moveObject.from, "from");
@@ -614,17 +614,12 @@ function SquareClicked(square)
 
 function StockfishBestMoveDecided(moveAsFromTo)
 {
-	var first = moveAsFromTo.substr(0, 2);
-	var second = moveAsFromTo.substr(2);
-
 	if(stockfishEnabledAsPlayer)
 	{
 		if(playerPlayAs == turn)
 			return;
 
-		alert(first + ", " + second);
-
-		Move({ from: first, to: second });
+		Move(moveAsFromTo);
 
 		UpdateStockfishMessage("Moving...");
 	}
