@@ -3,6 +3,10 @@
 
 <style>
 
+* {
+	font-family: 'Open Sans', sans-serif;
+}
+
 .square {
   z-index: 10;
 }
@@ -695,7 +699,7 @@ function UpdateStockfish(moveObject)
 
 function UpdateStockfishMessage(message)
 {
-	document.getElementById("stockfishMessageSpan").value = "<i>" + message + "</i>";
+	document.getElementById("stockfishMessageSpan").textContent = message;
 }
 
 function UpdateTextAreas()
@@ -719,6 +723,13 @@ function stockfishEnableAsPlayerCheckbox_Clicked()
 }
 
 </script>
+
+<head>
+
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300&display=swap" rel="stylesheet">
+
+</head>
 
 <body onload="Setup()">
 
@@ -1083,7 +1094,7 @@ function stockfishEnableAsPlayerCheckbox_Clicked()
 											<b>Stockfish 11</b>
 										</span>
 										<span id="stockfishMessageSpan" style="padding-right: 20px;" >
-											<i>Starting...</i>
+											Starting...
 										</span>
 										<input id="stockfishEnableAsPlayerCheckbox" type="checkbox" style="padding-right: 5px;" onclick="stockfishEnableAsPlayerCheckbox_Clicked();" />
 										<span style="padding-left: 5px;" >
