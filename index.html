@@ -44,7 +44,7 @@ var stockfish = STOCKFISH();
 
 stockfish.onmessage = function(event) 
 {
-    StockfishReceiveMessage(event.data ? event.data : event);
+    StockfishReceiveData(event.data ? event.data : event);
 };
 
 var turn = 0;
