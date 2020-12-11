@@ -74,6 +74,7 @@ for (var i = 0; i < 8; i++)
 var pieceSelected = "";
 var pieceSelectedMoves = null;
 
+var playerPlayAs = 0;
 var gameEnded = false;
 var gameWinner = "";
 var halfMoveIndex = -1;
@@ -608,6 +609,22 @@ function SquareClicked(square)
     }
 }
 
+function StockfishBestMoveDecided(moveAsFromTo)
+{
+	var first = moveAsFromTo.substr(0, 2);
+	var second = moveAsFromTo.substr(2);
+
+	var moveObject = { from: first, to: second };
+
+	if(stockfishEnabledAsPlayer)
+	{
+		if(playerPlayAs == turn)
+			return;
+
+		Move(moveObject);
+	}
+}
+
 function StockfishPostMessage(message)
 {
 	stockfish.postMessage(message);
@@ -633,7 +650,7 @@ function StockfishReceiveData(data)
 
 	if(parts[0] == "bestmove")
 	{
-		console.log("Best move: " + parts[1]);
+		StockfishBestMoveDecided(parts[1]);
 	}
 
 	UpdateStockfishMessage("Ready.");
