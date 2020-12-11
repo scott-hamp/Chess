@@ -466,6 +466,9 @@ function NextTurn(moveObject)
 		alert("Insufficient material.");
 	}
 
+	if(stockfishEnabledAsPlayer)
+		UpdateStockfishMessage("Ready.");
+
 	UpdateStockfish(moveObject);
 
 	UpdateTextAreas();
@@ -614,14 +617,14 @@ function StockfishBestMoveDecided(moveAsFromTo)
 	var first = moveAsFromTo.substr(0, 2);
 	var second = moveAsFromTo.substr(2);
 
-	var moveObject = { from: first, to: second };
-
 	if(stockfishEnabledAsPlayer)
 	{
 		if(playerPlayAs == turn)
 			return;
 
-		Move(moveObject);
+		Move({ from: first, to: second });
+
+		UpdateStockfishMessage("Moving...");
 	}
 }
 
