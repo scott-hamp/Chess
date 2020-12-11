@@ -734,9 +734,11 @@ function movesTextArea_OnClick()
 
 function playerPlayAsSelect_OnChange()
 {
-	var content = playerPlayAsSelect.options[playerPlayAsSelect.selectedIndex].innerHTML;
+	var element = document.getElementById("playerPlayAsSelect");
 
-	if(content = "White")
+	var option = element.options[element.selectedIndex].innerHTML;
+
+	if(option == "White")
 		playerPlayAs = 0;
 	else
 		playerPlayAs = 1;
