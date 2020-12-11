@@ -34,10 +34,18 @@ textarea {
 </style>
 
  <script type="text/javascript" src="chess.js"></script>
+ <script type="text/javascript" src="stockfish.js"></script>
 
 <script>
 
 const chess = new Chess();
+
+var stockfish = STOCKFISH();
+
+stockfish.onmessage = function(event) 
+{
+    console.log(event.data ? event.data : event);
+};
 
 var turn = 0;
 
@@ -556,6 +564,8 @@ function Setup()
 	SetPieces();
 
 	UpdateTextAreas();
+
+	stockfish.postMessage("uci");
 }
 
 function ShowHidePiece(piece, show)
