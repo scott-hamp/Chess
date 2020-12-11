@@ -14,8 +14,8 @@
 
 img {
   display: block;
-  width: 75px;
-  height: 75px;
+  width: 90px;
+  height: 90px;
 }
 
 table, table th, table tr, table td {
@@ -64,7 +64,7 @@ var gameWinner = "";
 var halfMoveIndex = -1;
 var fullMoveIndex = -1;
 
-var squarePixelSize = 75;
+var squarePixelSize = 90;
 var pieceAnimationSpeed = 2;
 var pieceAnimationSpeedReal = pieceAnimationSpeed * (squarePixelSize / 90);
 
@@ -556,6 +556,11 @@ function Setup()
 	SetPieces();
 
 	UpdateTextAreas();
+
+	var isMobile = window.matchMedia("only screen and (max-width: 760px)").matches;
+
+    if (isMobile) {
+		alert("mobile");
 }
 
 function ShowHidePiece(piece, show)
