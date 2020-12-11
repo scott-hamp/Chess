@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html>
+
+<style>
+
+.square {
+  z-index: 10;
+}
+
+.piece {
+  position: absolute;
+  z-index: 20;
+}
+
+img {
+  display: block;
+  width: 80px;
+  height: 80px;
+}
+
+table, table th, table tr, table td {
+	margin: 0px;
+	border: 0px;
+	border-spacing: 0px;
+	border-collapse: collapse;
+	padding: 0px;
+}
+
+textarea {
+  resize: none;
+  width: 600px;
+}
+
+</style>
+
+ <script type="text/javascript" src="chess.js"></script>
+
+<script>
+
+const chess = new Chess();
+
+var turn = 0;
+
+var piecesMap = new Array(8);
+
+for (var i = 0; i < piecesMap.length; i++) 
+{ 
+    piecesMap[i] = new Array(8);
+}
+
+for (var i = 0; i < 8; i++) 
+{ 
+    for (var j = 0; j < 8; j++) 
+	{ 
+        piecesMap[i][j] = "";
+    } 
+}
+
+var pieceSelected = "";
+var pieceSelectedMoves = null;
+
+var gameEnded = false;
+var gameWinner = "";
+var halfMoveIndex = -1;
+var fullMoveIndex = -1;
+
+var squarePixelSize = 80;
+var pieceAnimationSpeed = 2;
+var pieceAnimationSpeedReal = pieceAnimationSpeed * (squarePixelSize / 90);
+
+
+function AnimatePieceUsingMoveObject(piece, moveObject) 
+{
+	var element = document.getElementById("piece_" + piece);
+	
+	var rank = moveObject.to.charAt(1);
+	var file = moveObject.to.charAt(0);
+
+	var fileNumber = GetFileNumberForLetter(file);
+
+	var xx = ((fileNumber - 1) * squarePixelSize) + (10 * (squarePixelSize / 90));
+	var yy = ((squarePixelSize * 7) - ((rank - 1) * squarePixelSize)) + (10 * (squarePixelSize / 90));
+
+	x = element.offsetLeft;
+	y = element.offsetTop; 
+
+	var x1 = GetFileNumberForLetter(moveObject.from.charAt(0)) - 1;
+	var y1 = moveObject.from.charAt(1) - 1;
+	var x2 = GetFileNumberForLetter(moveObject.to.charAt(0)) - 1;
+	var y2 = moveObject.to.charAt(1) - 1;
+
+	var pieceAtMoveTo = piecesMap[x2][y2];
+	var pieceAtMoveToHidden = false;
+
+	var f1 = setInterval(AnimatePieceUsingMoveObjectUpdate, 1);
+
+    function AnimatePieceUsingMoveObjectUpdate() 
+	{
+		if (x == xx && y == yy)
+		{
+		  piecesMap[x1][y1] = "";
+		  piecesMap[x2][y2] = piece;
+
+		  if(moveObject.san.includes("=Q"))
+		  {
+			var pieceColor = GetPieceColor(piece);
+
+			if(pieceColor == "white")
+			{
+				ShowHidePiece("Q2", true);
+				SetPiecePosition("Q2", moveObject.to);
+
+				ShowHidePiece(piece, false);
+
+				piecesMap[x2][y2] = "Q2";
+			}
+			else
+			{
+				ShowHidePiece("q2", true);
+				SetPiecePosition("q2", moveObject.to);
+
+				ShowHidePiece(piece, false);
+
+				piecesMap[x2][y2] = "q2";
+			}
+		  }
+
+		  NextTurn(moveObject.san);
+
+		  clearInterval(f1);
+		} 
+		else 
+		{
+		  if(x < xx) x += pieceAnimationSpeedReal;
+		  if(x > xx) x -= pieceAnimationSpeedReal;
+		  if(y < yy) y += pieceAnimationSpeedReal;
+		  if(y > yy) y -= pieceAnimationSpeedReal;
+
+		  var distance = GetDistance(x, y, xx, yy);
+
+		  if(distance <= (pieceAnimationSpeedReal * 1.5))
+		  {
+			 x = xx;
+			 y = yy;
+		  }
+
+		  element.style.left = x + "px";
+		  element.style.top = y + "px";
+
+		  if(pieceAtMoveTo.length > 0 && !pieceAtMoveToHidden)
+		  {
+			 if(distance <= 50)
+			 {
+				 pieceAtMoveToHidden = true;
+				 ShowHidePiece(pieceAtMoveTo, false);
+			 }
+		  }
+		}
+	}
+}
+
+function AnimatePieceUsingMoveTo(piece, to) 
+{
+	var element = document.getElementById("piece_" + piece);
+	
+	var rank = to.charAt(1);
+	var file = to.charAt(0);
+
+	var fileNumber = GetFileNumberForLetter(file);
+
+	var _xx = ((fileNumber - 1) * squarePixelSize) + (10 * (squarePixelSize / 90));
+	var _yy = ((squarePixelSize * 7) - ((rank - 1) * squarePixelSize)) + (10 * (squarePixelSize / 90));
+
+	_x = element.offsetLeft;
+	_y = element.offsetTop;
+
+	var from = GetPiecePosition(piece);
+
+	var _x1 = GetFileNumberForLetter(from.charAt(0)) - 1;
+	var _y1 = from.charAt(1) - 1;
+	var _x2 = GetFileNumberForLetter(to.charAt(0)) - 1;
+	var _y2 = to.charAt(1) - 1;
+
+	var pieceAtMoveTo = piecesMap[_x2][_y2];
+	var pieceAtMoveToHidden = false;
+
+	var _f1 = setInterval(AnimatePieceUsingMoveToUpdate, 1);
+
+    function AnimatePieceUsingMoveToUpdate() 
+	{
+		if (_x == _xx && _y == _yy)
+		{
+		  piecesMap[_x1][_y1] = "";
+		  piecesMap[_x2][_y2] = piece;
+
+		  clearInterval(_f1);
+		} 
+		else 
+		{
+		  if(_x < _xx) _x += pieceAnimationSpeedReal;
+		  if(_x > _xx) _x -= pieceAnimationSpeedReal;
+		  if(_y < _yy) _y += pieceAnimationSpeedReal;
+		  if(_y > _yy) _y -= pieceAnimationSpeedReal;
+
+		  var distance = GetDistance(_x, _y, _xx, _yy);
+
+		  if(distance <= (pieceAnimationSpeedReal * 1.5))
+		  {
+			 _x = _xx;
+			 _y = _yy;
+		  }
+
+		  element.style.left = _x + "px";
+		  element.style.top = _y + "px";
+		}
+	}
+}
+
+function ClearHighlights()
+{
+	for (var i = 0; i < 8; i++) 
+	{ 
+		for (var j = 0; j < 8; j++) 
+		{ 
+			var rank = j + 1;
+			var file = GetLetterForFileNumber(i + 1);
+
+			HighlightSquare(file + rank, "");
+		} 
+	}
+}
+
+function GetDistance(x1, y1, x2, y2) 
+{
+	
+	var xs = x2 - x1;
+	var ys = y2 - y1;	
+	
+	xs *= xs;
+	ys *= ys;
+	 
+	return Math.sqrt(xs + ys);
+};
+
+function GetFileNumberForLetter(letter)
+{
+	switch(letter) 
+	{
+	  case 'a':
+		return 1;
+		break;
+      case 'b':
+		return 2;
+		break;
+	  case 'c':
+		return 3;
+		break;
+	  case 'd':
+		return 4;
+		break;
+	  case 'e':
+		return 5;
+		break;
+	  case 'f':
+		return 6;
+		break;
+      case 'g':
+		return 7;
+		break;
+      case 'h':
+		return 8;
+		break;
+	  default:
+		return -1;
+	}
+
+	return fileNumber;
+}
+
+function GetLetterForFileNumber(number)
+{
+	switch(number) 
+	{
+	  case 1:
+		return 'a';
+		break;
+      case 2:
+		return 'b';
+		break;
+	  case 3:
+		return 'c';
+		break;
+	  case 4:
+		return 'd';
+		break;
+	  case 5:
+		return 'e';
+		break;
+	  case 6:
+		return 'f';
+		break;
+      case 7:
+		return 'g';
+		break;
+      case 8:
+		return 'h';
+		break;
+	  default:
+		return ' '
+	}
+
+	return fileNumber;
+}
+
+function GetPieceAtPosition(position)
+{
+	var x1 = GetFileNumberForLetter(position.charAt(0)) - 1;
+	var y1 = position.charAt(1) - 1;
+
+	return piecesMap[x1][y1];
+}
+
+function GetPieceColor(piece)
+{
+	var chr = piece.charAt(0);
+
+	if(chr == 'P' || chr == 'R' || chr == 'N' || chr == 'B' || 
+	   chr == 'Q' || chr == 'K')
+	   return "white";
+
+	return "black";
+}
+
+function GetPiecePosition(piece)
+{
+	for (var i = 0; i < 8; i++) 
+	{ 
+		for (var j = 0; j < 8; j++) 
+		{ 
+			if(piecesMap[i][j] != piece) continue;
+
+			var rank = j + 1;
+			var file = GetLetterForFileNumber(i + 1);
+
+			return file + rank;
+		} 
+	}
+
+	return " ";
+}
+
+function HighlightSquare(position, type)
+{
+	var element = document.getElementById("square_" + position + "_img");
+
+	var squareColor = chess.square_color(position);
+	var squareColorNumber = 0;
+	if(squareColor == "dark")
+		squareColorNumber = 1;
+
+	var imageSource = "square-" + squareColorNumber;
+
+	if(type.length > 0)
+	{
+		imageSource += "-" + type;
+	}
+
+	imageSource += ".png";
+
+	element.src = imageSource;
+}
+
+function Move(piece, move)
+{
+	var moveObject = chess.move(move);
+
+	ClearHighlights();
+	HighlightSquare(moveObject.from, "from");
+	HighlightSquare(moveObject.to, "to");
+
+	AnimatePieceUsingMoveObject(piece, moveObject);
+
+	var color = GetPieceColor(pieceSelected);
+
+	if(move == "O-O" || move == "O-O-O")
+	{
+		if(move == "O-O")
+		{
+			if(color == "white")
+				AnimatePieceUsingMoveTo("R2", "f1");
+			else
+				AnimatePieceUsingMoveTo("r2", "f8");
+		}
+		else
+		{
+			if(color == "white")
+				AnimatePieceUsingMoveTo("R1", "d1");
+			else
+				AnimatePieceUsingMoveTo("r1", "d8");
+		}
+	}
+}
+
+function NextTurn(move)
+{
+	if(turn == 0)
+		turn = 1;
+	else
+		turn = 0;
+
+	halfMoveIndex++;
+	if(fullMoveIndex < 0)
+		fullMoveIndex++;
+	else
+	{
+		if(halfMoveIndex % 2 == 0)
+			fullMoveIndex++;
+	}
+
+	pieceSelected = "";
+	pieceSelectedMoves = null;
+
+	if(chess.in_check())
+	{
+		var position = GetPiecePosition("K");
+		if(turn == 1)
+			position = GetPiecePosition("k");
+
+		if(chess.in_checkmate())
+		{
+			HighlightSquare(position, "checkmate");
+		}
+		else
+		{
+			HighlightSquare(position, "check");
+		}
+	}
+
+	if(chess.in_threefold_repetition())
+	{
+		gameEnded = true;
+
+		alert("Threefold repetition.");
+	}
+
+	if(chess.insufficient_material())
+	{
+		gameEnded = true;
+
+		alert("Insufficient material.");
+	}
+
+	UpdateTextAreas(move);
+}
+
+function PieceClicked(piece)
+{
+	if(gameEnded) return;
+
+	var position = GetPiecePosition(piece);
+	var color = GetPieceColor(piece);
+
+	if(pieceSelected.length > 0)
+	{
+		if(GetPieceColor(pieceSelected) != color)
+		{
+			for (var i = 0; i < pieceSelectedMoves.length; i++) 
+			{ 
+				if(pieceSelectedMoves[i].to != position) continue;
+
+				Move(pieceSelected, pieceSelectedMoves[i].san);
+
+				break;
+			} 
+		
+			return;
+		}
+	}
+
+	if((color == "white" && turn == 1) || 
+	   (color == "black" && turn == 0))
+	   return;
+
+	pieceSelected = piece;
+
+	pieceSelectedMoves = chess.moves({ square: position, verbose: true });
+
+	ClearHighlights();
+	HighlightSquare(position, "move");
+
+	for (var i = 0; i < pieceSelectedMoves.length; i++) 
+	{ 
+        HighlightSquare(pieceSelectedMoves[i].to, "move");
+    } 
+}
+
+function SetPiecePosition(name, to) 
+{
+	var element = document.getElementById("piece_" + name);
+	
+	var rank = to.charAt(1);
+	var file = to.charAt(0);
+
+	var fileNumber = GetFileNumberForLetter(file);
+
+	var x = ((fileNumber - 1) * squarePixelSize) + (10 * (squarePixelSize / 90));
+	var y = ((squarePixelSize * 7) - ((rank - 1) * squarePixelSize)) + (10 * (squarePixelSize / 90));
+
+	element.style.left = x + "px";
+	element.style.top = y + "px";
+
+	piecesMap[fileNumber - 1][rank - 1] = name;
+}
+
+function SetPieces()
+{
+	SetPiecePosition("P1", "a2");
+	SetPiecePosition("P2", "b2");
+	SetPiecePosition("P3", "c2");
+	SetPiecePosition("P4", "d2");
+	SetPiecePosition("P5", "e2");
+	SetPiecePosition("P6", "f2");
+	SetPiecePosition("P7", "g2");
+	SetPiecePosition("P8", "h2");
+	SetPiecePosition("R1", "a1");
+	SetPiecePosition("R2", "h1");
+	SetPiecePosition("N1", "b1");
+	SetPiecePosition("N2", "g1");
+	SetPiecePosition("B1", "c1");
+	SetPiecePosition("B2", "f1");
+	SetPiecePosition("Q1", "d1");
+	SetPiecePosition("K", "e1");
+	ShowHidePiece("Q2", false);
+
+	SetPiecePosition("p1", "a7");
+	SetPiecePosition("p2", "b7");
+	SetPiecePosition("p3", "c7");
+	SetPiecePosition("p4", "d7");
+	SetPiecePosition("p5", "e7");
+	SetPiecePosition("p6", "f7");
+	SetPiecePosition("p7", "g7");
+	SetPiecePosition("p8", "h7");
+	SetPiecePosition("r1", "a8");
+	SetPiecePosition("r2", "h8");
+	SetPiecePosition("n1", "b8");
+	SetPiecePosition("n2", "g8");
+	SetPiecePosition("b1", "c8");
+	SetPiecePosition("b2", "f8");
+	SetPiecePosition("q1", "d8");
+	SetPiecePosition("k", "e8");
+	ShowHidePiece("q2", false);
+}
+
+function Setup()
+{
+	SetPieces();
+
+	UpdateTextAreas();
+}
+
+function ShowHidePiece(piece, show)
+{
+	var element = document.getElementById("piece_" + piece);
+
+	if (show) 
+	{
+        element.style.display = "block";
+    } 
+	else 
+	{
+        element.style.display = "none";
+    }
+}
+
+function SquareClicked(square)
+{
+	if(pieceSelected.length == 0)
+		return;
+
+	for (var i = 0; i < pieceSelectedMoves.length; i++) 
+	{ 
+        if(pieceSelectedMoves[i].to != square) continue;
+
+		var san = pieceSelectedMoves[i].san;
+
+		Move(pieceSelected, san);
+
+		break;
+    }
+}
+
+function TextAreaSelect(textArea, start, end) 
+{
+    if(textArea.createTextRange) 
+	{
+        var range = textArea.createTextRange();
+
+        range.collapse(true);
+        range.moveStart('character', start);
+        range.moveEnd('character', end);
+        range.select();
+    } 
+	else if(textArea.setSelectionRange) 
+	{
+        textArea.setSelectionRange(start, end);
+    } 
+	else if(textArea.selectionStart) 
+	{
+        textArea.selectionStart = start;
+        textArea.selectionEnd = end;
+    }
+
+    textArea.focus();
+} 
+
+function UpdateMovesTextArea()
+{
+	var pgn = chess.pgn();
+
+	document.getElementById("movesTextArea").value = pgn;
+
+	if(fullMoveIndex >= 0)
+	{
+		var history = chess.history({ verbose: true });
+
+		move = history[halfMoveIndex].san;
+
+		var indexFirst = pgn.search((fullMoveIndex + 1) + ". ");
+		var indexSecond = pgn.indexOf(move, indexSecond);
+		var indexThird = pgn.indexOf(" ", indexSecond);
+
+		if(indexThird == -1)
+			indexThird = pgn.length + 1;
+
+		TextAreaSelect(document.getElementById('movesTextArea'), indexSecond, indexThird - 1);
+	}
+}
+
+function UpdateTextAreas()
+{
+	document.getElementById("FENTextArea").value = chess.fen();
+	
+	UpdateMovesTextArea();
+}
+
+
+function movesTextArea_OnClick()
+{
+	UpdateMovesTextArea();
+}
+
+</script>
+
+<body onload="Setup()">
+
+<div id="main">
+	<table id="main-table">
+		<tr>
+			<td>
+				<div id ="board">
+					<table id="squares" cellspacing="0">
+						<tr>
+							<td id="square_a8" class="square" onclick="SquareClicked('a8');">
+								<img src="square-0.png" id="square_a8_img" />
+							</td>
+							<td id="square_b8" class="square" onclick="SquareClicked('b8');">
+								<img src="square-1.png" id="square_b8_img" />
+							</td>
+							<td id="square_c8" class="square" onclick="SquareClicked('c8');">
+								<img src="square-0.png" id="square_c8_img" />
+							</td>
+							<td id="square_d8" class="square" onclick="SquareClicked('d8');">
+								<img src="square-1.png" id="square_d8_img" />
+							</td>
+							<td id="square_e8" class="square" onclick="SquareClicked('e8');">
+								<img src="square-0.png" id="square_e8_img" />
+							</td>
+							<td id="square_f8" class="square" onclick="SquareClicked('f8');">
+								<img src="square-1.png" id="square_f8_img" />
+							</td>
+							<td id="square_g8" class="square" onclick="SquareClicked('g8');">
+								<img src="square-0.png" id="square_g8_img" />
+							</td>
+							<td id="square_h8" class="square" onclick="SquareClicked('h8');">
+								<img src="square-1.png" id="square_h8_img" />
+							</td>
+						</tr>
+						<tr>
+							<td id="square_a7" class="square" onclick="SquareClicked('a7');">
+								<img src="square-1.png" id="square_a7_img" />
+							</td>
+							<td id="square_b7" class="square" onclick="SquareClicked('b7');">
+								<img src="square-0.png" id="square_b7_img" />
+							</td>
+							<td id="square_c7" class="square" onclick="SquareClicked('c7');">
+								<img src="square-1.png" id="square_c7_img" />
+							</td>
+							<td id="square_d7" class="square" onclick="SquareClicked('d7');">
+								<img src="square-0.png" id="square_d7_img" />
+							</td>
+							<td id="square_e7" class="square" onclick="SquareClicked('e7');">
+								<img src="square-1.png" id="square_e7_img" />
+							</td>
+							<td id="square_f7" class="square" onclick="SquareClicked('f7');">
+								<img src="square-0.png" id="square_f7_img" />
+							</td>
+							<td id="square_g7" class="square" onclick="SquareClicked('g7');">
+								<img src="square-1.png" id="square_g7_img" />
+							</td>
+							<td id="square_h7" class="square" onclick="SquareClicked('h7');">
+								<img src="square-0.png" id="square_h7_img" />
+							</td>
+						</tr>
+						<tr>
+							<td id="square_a6" class="square" onclick="SquareClicked('a6');">
+								<img src="square-0.png" id="square_a6_img" />
+							</td>
+							<td id="square_b6" class="square" onclick="SquareClicked('b6');">
+								<img src="square-1.png" id="square_b6_img" />
+							</td>
+							<td id="square_c6" class="square" onclick="SquareClicked('c6');">
+								<img src="square-0.png" id="square_c6_img" />
+							</td>
+							<td id="square_d6" class="square" onclick="SquareClicked('d6');">
+								<img src="square-1.png" id="square_d6_img" />
+							</td>
+							<td id="square_e6" class="square" onclick="SquareClicked('e6');">
+								<img src="square-0.png" id="square_e6_img" />
+							</td>
+							<td id="square_f6" class="square" onclick="SquareClicked('f6');">
+								<img src="square-1.png" id="square_f6_img" />
+							</td>
+							<td id="square_g6" class="square" onclick="SquareClicked('g6');">
+								<img src="square-0.png" id="square_g6_img" />
+							</td>
+							<td id="square_h6" class="square" onclick="SquareClicked('h6');">
+								<img src="square-1.png" id="square_h6_img" />
+							</td>
+						</tr>
+						<tr>
+							<td id="square_a5" class="square" onclick="SquareClicked('a5');">
+								<img src="square-1.png" id="square_a5_img" />
+							</td>
+							<td id="square_b5" class="square" onclick="SquareClicked('b5');">
+								<img src="square-0.png" id="square_b5_img" />
+							</td>
+							<td id="square_c5" class="square" onclick="SquareClicked('c5');">
+								<img src="square-1.png" id="square_c5_img" />
+							</td>
+							<td id="square_d5" class="square" onclick="SquareClicked('d5');">
+								<img src="square-0.png" id="square_d5_img" />
+							</td>
+							<td id="square_e5" class="square" onclick="SquareClicked('e5');">
+								<img src="square-1.png" id="square_e5_img" />
+							</td>
+							<td id="square_f5" class="square" onclick="SquareClicked('f5');">
+								<img src="square-0.png" id="square_f5_img" />
+							</td>
+							<td id="square_g5" class="square" onclick="SquareClicked('g5');">
+								<img src="square-1.png" id="square_g5_img" />
+							</td>
+							<td id="square_h5" class="square" onclick="SquareClicked('h5');">
+								<img src="square-0.png" id="square_h5_img" />
+							</td>
+						</tr>
+						<tr>
+							<td id="square_a4" class="square" onclick="SquareClicked('a4');">
+								<img src="square-0.png" id="square_a4_img" />
+							</td>
+							<td id="square_b4" class="square" onclick="SquareClicked('b4');">
+								<img src="square-1.png" id="square_b4_img" />
+							</td>
+							<td id="square_c4" class="square" onclick="SquareClicked('c4');">
+								<img src="square-0.png" id="square_c4_img" />
+							</td>
+							<td id="square_d4" class="square" onclick="SquareClicked('d4');">
+								<img src="square-1.png" id="square_d4_img" />
+							</td>
+							<td id="square_e4" class="square" onclick="SquareClicked('e4');">
+								<img src="square-0.png" id="square_e4_img" />
+							</td>
+							<td id="square_f4" class="square" onclick="SquareClicked('f4');">
+								<img src="square-1.png" id="square_f4_img" />
+							</td>
+							<td id="square_g4" class="square" onclick="SquareClicked('g4');">
+								<img src="square-0.png" id="square_g4_img" />
+							</td>
+							<td id="square_h4" class="square" onclick="SquareClicked('h4');">
+								<img src="square-1.png" id="square_h4_img" />
+							</td>
+						</tr>
+						<tr>
+							<td id="square_a3" class="square" onclick="SquareClicked('a3');">
+								<img src="square-1.png" id="square_a3_img" />
+							</td>
+							<td id="square_b3" class="square" onclick="SquareClicked('b3');">
+								<img src="square-0.png" id="square_b3_img" />
+							</td>
+							<td id="square_c3" class="square" onclick="SquareClicked('c3');">
+								<img src="square-1.png" id="square_c3_img" />
+							</td>
+							<td id="square_d3" class="square" onclick="SquareClicked('d3');">
+								<img src="square-0.png" id="square_d3_img" />
+							</td>
+							<td id="square_e3" class="square" onclick="SquareClicked('e3');">
+								<img src="square-1.png" id="square_e3_img" />
+							</td>
+							<td id="square_f3" class="square" onclick="SquareClicked('f3');">
+								<img src="square-0.png" id="square_f3_img" />
+							</td>
+							<td id="square_g3" class="square" onclick="SquareClicked('g3');">
+								<img src="square-1.png" id="square_g3_img" />
+							</td>
+							<td id="square_h3" class="square" onclick="SquareClicked('h3');">
+								<img src="square-0.png" id="square_h3_img" />
+							</td>
+						</tr>
+						<tr>
+							<td id="square_a2" class="square" onclick="SquareClicked('a2');">
+								<img src="square-0.png" id="square_a2_img" />
+							</td>
+							<td id="square_b2" class="square" onclick="SquareClicked('b2');">
+								<img src="square-1.png" id="square_b2_img" />
+							</td>
+							<td id="square_c2" class="square" onclick="SquareClicked('c2');">
+								<img src="square-0.png" id="square_c2_img" />
+							</td>
+							<td id="square_d2" class="square" onclick="SquareClicked('d2');">
+								<img src="square-1.png" id="square_d2_img" />
+							</td>
+							<td id="square_e2" class="square" onclick="SquareClicked('e2');">
+								<img src="square-0.png" id="square_e2_img" />
+							</td>
+							<td id="square_f2" class="square" onclick="SquareClicked('f2');">
+								<img src="square-1.png" id="square_f2_img" />
+							</td>
+							<td id="square_g2" class="square" onclick="SquareClicked('g2');">
+								<img src="square-0.png" id="square_g2_img" />
+							</td>
+							<td id="square_h2" class="square" onclick="SquareClicked('h2');">
+								<img src="square-1.png" id="square_h2_img" />
+							</td>
+						</tr>
+						<tr>
+							<td id="square_a1" class="square" onclick="SquareClicked('a1');">
+								<img src="square-1.png" id="square_a1_img" />
+							</td>
+							<td id="square_b1" class="square" onclick="SquareClicked('b1');">
+								<img src="square-0.png" id="square_b1_img" />
+							</td>
+							<td id="square_c1" class="square" onclick="SquareClicked('c1');">
+								<img src="square-1.png" id="square_c1_img" />
+							</td>
+							<td id="square_d1" class="square" onclick="SquareClicked('d1');">
+								<img src="square-0.png" id="square_d1_img" />
+							</td>
+							<td id="square_e1" class="square" onclick="SquareClicked('e1');">
+								<img src="square-1.png" id="square_e1_img" />
+							</td>
+							<td id="square_f1" class="square" onclick="SquareClicked('f1');">
+								<img src="square-0.png" id="square_f1_img" />
+							</td>
+							<td id="square_g1" class="square" onclick="SquareClicked('g1');">
+								<img src="square-1.png" id="square_g1_img" />
+							</td>
+							<td id="square_h1" class="square" onclick="SquareClicked('h1');">
+								<img src="square-0.png" id="square_h1_img" />
+							</td>
+						</tr>
+					</table>
+					<div id="pieces" style="z-index: 100">
+						<div id="piece_P1" class="piece" onclick="PieceClicked('P1');">
+						  <img src="pawn-0.png" id="piece_P1_img" />
+						</div>
+						<div id="piece_P2" class="piece" onclick="PieceClicked('P2');">
+						  <img src="pawn-0.png" id="piece_P2_img" />
+						</div>
+						<div id="piece_P3" class="piece" onclick="PieceClicked('P3');">
+						  <img src="pawn-0.png" id="piece_P3_img" />
+						</div>
+						<div id="piece_P4" class="piece" onclick="PieceClicked('P4');">
+						  <img src="pawn-0.png" id="piece_P4_img" />
+						</div>
+						<div id="piece_P5" class="piece" onclick="PieceClicked('P5');">
+						  <img src="pawn-0.png" id="piece_P5_img" />
+						</div>
+						<div id="piece_P6" class="piece" onclick="PieceClicked('P6');">
+						  <img src="pawn-0.png" id="piece_P6_img" />
+						</div>
+						<div id="piece_P7" class="piece" onclick="PieceClicked('P7');">
+						  <img src="pawn-0.png" id="piece_P7_img" />
+						</div>
+						<div id="piece_P8" class="piece" onclick="PieceClicked('P8');">
+						  <img src="pawn-0.png" id="piece_P8_img" />
+						</div>
+						<div id="piece_R1" class="piece" onclick="PieceClicked('R1');">
+						  <img src="rook-0.png" id="piece_R1_img" />
+						</div>
+						<div id="piece_R2" class="piece" onclick="PieceClicked('R2');">
+						  <img src="rook-0.png" id="piece_R2_img" />
+						</div>
+						<div id="piece_N1" class="piece" onclick="PieceClicked('N1');">
+						  <img src="knight-0.png" id="piece_N1_img" />
+						</div>
+						<div id="piece_N2" class="piece" onclick="PieceClicked('N2');">
+						  <img src="knight-0.png" id="piece_N2_img" />
+						</div>
+						<div id="piece_B1" class="piece" onclick="PieceClicked('B1');">
+						  <img src="bishop-0.png" id="piece_B1_img" />
+						</div>
+						<div id="piece_B2" class="piece" onclick="PieceClicked('B2');">
+						  <img src="bishop-0.png" id="piece_B2_img" />
+						</div>
+						<div id="piece_Q1" class="piece" onclick="PieceClicked('Q1');">
+						  <img src="queen-0.png" id="piece_Q1_img" />
+						</div>
+						<div id="piece_Q2" class="piece" onclick="PieceClicked('Q2');">
+						  <img src="queen-0.png" id="piece_Q2_img" />
+						</div>
+						<div id="piece_K" class="piece" onclick="PieceClicked('K');">
+						  <img src="king-0.png" id="piece_K_img" />
+						</div>
+						<div id="piece_p1" class="piece" onclick="PieceClicked('p1');">
+						  <img src="pawn-1.png" id="piece_p1_img" />
+						</div>
+						<div id="piece_p2" class="piece" onclick="PieceClicked('p2');">
+						  <img src="pawn-1.png" id="piece_p2_img" />
+						</div>
+						<div id="piece_p3" class="piece" onclick="PieceClicked('p3');">
+						  <img src="pawn-1.png" id="piece_p3_img" />
+						</div>
+						<div id="piece_p4" class="piece" onclick="PieceClicked('p4');">
+						  <img src="pawn-1.png" id="piece_p4_img" />
+						</div>
+						<div id="piece_p5" class="piece" onclick="PieceClicked('p5');">
+						  <img src="pawn-1.png" id="piece_p5_img" />
+						</div>
+						<div id="piece_p6" class="piece" onclick="PieceClicked('p6');">
+						  <img src="pawn-1.png" id="piece_p6_img" />
+						</div>
+						<div id="piece_p7" class="piece" onclick="PieceClicked('p7');">
+						  <img src="pawn-1.png" id="piece_p7_img" />
+						</div>
+						<div id="piece_p8" class="piece" onclick="PieceClicked('p8');">
+						  <img src="pawn-1.png" id="piece_p8_img" />
+						</div>
+						<div id="piece_r1" class="piece" onclick="PieceClicked('r1');">
+						  <img src="rook-1.png" id="piece_r1_img" />
+						</div>
+						<div id="piece_r2" class="piece" onclick="PieceClicked('r2');">
+						  <img src="rook-1.png" id="piece_r2_img" />
+						</div>
+						<div id="piece_n1" class="piece" onclick="PieceClicked('n1');">
+						  <img src="knight-1.png" id="piece_n1_img" />
+						</div>
+						<div id="piece_n2" class="piece" onclick="PieceClicked('n2');">
+						  <img src="knight-1.png" id="piece_n2_img" />
+						</div>
+						<div id="piece_b1" class="piece" onclick="PieceClicked('b1');">
+						  <img src="bishop-1.png" id="piece_b1_img" />
+						</div>
+						<div id="piece_b2" class="piece" onclick="PieceClicked('b2');">
+						  <img src="bishop-1.png" id="piece_b2_img" />
+						</div>
+						<div id="piece_q1" class="piece" onclick="PieceClicked('q1');">
+						  <img src="queen-1.png" id="piece_q1_img" />
+						</div>
+						<div id="piece_q2" class="piece" onclick="PieceClicked('q2');">
+						  <img src="queen-1.png" id="piece_q2_img" />
+						</div>
+						<div id="piece_k" class="piece" onclick="PieceClicked('k');">
+						  <img src="king-1.png" id="piece_k_img" />
+						</div>
+					</div>
+				</div>
+			</td>
+			<td style="padding-left: 20px;">
+				<div id="info" style="background-color: lightgray;">
+					<table>
+						<tr>
+							<td style="padding-top: 25px; padding-left: 20px;">
+								<div align="center">
+									<button>
+										Reset
+									</button>
+									<span style="padding-left: 15px; padding-right: 5px;">
+										Play as:
+									</span>
+									<select onChange="alert('change');">
+										<option>White</option>
+										<option>Black</option>
+									</select>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td align="center" style="padding-left: 20px; padding-top: 20px; padding-right: 20px;">
+								<textarea id="FENTextArea" rows="1" readonly>
+								</textarea>
+							<td>
+						</tr>
+						<tr>
+							<td align="center" style="padding-left: 20px; padding-top: 5px; padding-right: 20px;">
+								<textarea id="movesTextArea" rows="5" readonly onclick="movesTextArea_OnClick();">
+								</textarea>
+							<td>
+						</tr>
+					</table>
+				</div>
+			</td>
+		</tr>
+	</table>
+</div>
+
+</body>
+</html>
