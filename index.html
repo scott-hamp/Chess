@@ -707,9 +707,12 @@ function UpdateStockfish(moveObject)
 {
 	if(!stockfishIsReady) return;
 
-	var notation = moveObject.from + moveObject.to;
+	if(moveObject != null)
+	{
+		var notation = moveObject.from + moveObject.to;
 
-    StockfishPostMessage("position fen " + chess.fen() + " moves " + notation);
+		StockfishPostMessage("position fen " + chess.fen() + " moves " + notation);
+	}
 
 	StockfishPostMessage("go depth 10");
 
@@ -745,7 +748,12 @@ function playerPlayAsSelect_OnChange()
 	else
 		playerPlayAs = 1;
 
-	UpdateStockfish();
+	var history = chess.history({ verbose: true })
+
+	if(history.length > 0)
+		UpdateStockfish(history[history.length - 1]);
+	else
+		UpdateStockfish(null);
 }
 
 function stockfishEnableAsPlayerCheckbox_OnClick()
