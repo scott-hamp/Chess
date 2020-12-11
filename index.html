@@ -651,9 +651,7 @@ function StockfishReceiveData(data)
 	var parts = data.split(" ");
 
 	if(parts[0] == "bestmove")
-	{
 		StockfishBestMoveDecided(parts[1]);
-	}
 
 	UpdateStockfishMessage("Ready.");
 }
@@ -734,7 +732,17 @@ function movesTextArea_OnClick()
 	UpdateMovesTextArea();
 }
 
-function stockfishEnableAsPlayerCheckbox_Clicked()
+function playerPlayAsSelect_OnChange()
+{
+	var content = playerPlayAsSelect.options[playerPlayAsSelect.selectedIndex].innerHTML;
+
+	if(content = "White")
+		playerPlayAs = 0;
+	else
+		playerPlayAs = 1;
+}
+
+function stockfishEnableAsPlayerCheckbox_OnClick()
 {
 	var element = document.getElementById("stockfishEnableAsPlayerCheckbox");
 
@@ -1085,7 +1093,7 @@ function stockfishEnableAsPlayerCheckbox_Clicked()
 									<span style="padding-left: 15px; padding-right: 5px;">
 										Play as:
 									</span>
-									<select onChange="alert('change');">
+									<select id="playerPlayAsSelect" onChange="playerPlayAsSelect_OnChange();">
 										<option>White</option>
 										<option>Black</option>
 									</select>
@@ -1115,7 +1123,7 @@ function stockfishEnableAsPlayerCheckbox_Clicked()
 										<span id="stockfishMessageSpan" style="padding-right: 20px;" >
 											Starting...
 										</span>
-										<input id="stockfishEnableAsPlayerCheckbox" type="checkbox" style="padding-right: 5px;" onclick="stockfishEnableAsPlayerCheckbox_Clicked();" />
+										<input id="stockfishEnableAsPlayerCheckbox" type="checkbox" style="padding-right: 5px;" onclick="stockfishEnableAsPlayerCheckbox_OnClick();" />
 										<span style="padding-left: 5px;" >
 											Enable player.
 										</span>
