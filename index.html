@@ -44,7 +44,7 @@ var stockfish = STOCKFISH();
 
 stockfish.onmessage = function(event) 
 {
-    console.log(event.data ? event.data : event);
+    StockfishReceiveMessage(event.data ? event.data : event);
 };
 
 var turn = 0;
@@ -565,7 +565,7 @@ function Setup()
 
 	UpdateTextAreas();
 
-	stockfish.postMessage("uci");
+	StockfishPostMessage("uci");
 }
 
 function ShowHidePiece(piece, show)
@@ -597,6 +597,16 @@ function SquareClicked(square)
 
 		break;
     }
+}
+
+function StockfishPostMessage(message)
+{
+	stockfish.postMessage(message);
+}
+
+function StockfishReceiveData(data)
+{
+	alert(data);
 }
 
 function TextAreaSelect(textArea, start, end) 
