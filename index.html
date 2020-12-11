@@ -388,6 +388,8 @@ function HighlightSquare(position, type)
 
 function Move(piece, move)
 {
+	alert(move);
+
 	var moveObject = chess.move(move, { sloppy: true });
 
 	ClearHighlights();
