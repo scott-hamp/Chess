@@ -556,11 +556,6 @@ function Setup()
 	SetPieces();
 
 	UpdateTextAreas();
-
-	var isMobile = window.matchMedia("only screen and (max-width: 760px)").matches;
-
-    if (isMobile)
-		alert("mobile");
 }
 
 function ShowHidePiece(piece, show)
@@ -979,7 +974,9 @@ function movesTextArea_OnClick()
 					</div>
 				</div>
 			</td>
-			<td style="padding-left: 20px;">
+		</tr>
+		<tr>
+			<td style="padding-top: 20px;">
 				<div id="info" style="background-color: lightgray;">
 					<table>
 						<tr>
