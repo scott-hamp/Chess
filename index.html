@@ -47,6 +47,9 @@ stockfish.onmessage = function(event)
     StockfishReceiveData(event.data ? event.data : event);
 };
 
+var stockfishReady = false;
+var stockfishEnabledAsPlayer = false;
+
 var turn = 0;
 
 var piecesMap = new Array(8);
@@ -133,7 +136,7 @@ function AnimatePieceUsingMoveObject(piece, moveObject)
 			}
 		  }
 
-		  NextTurn(moveObject.san);
+		  NextTurn(moveObject);
 
 		  clearInterval(f1);
 		} 
@@ -409,7 +412,7 @@ function Move(piece, move)
 	}
 }
 
-function NextTurn(move)
+function NextTurn(moveObject)
 {
 	if(turn == 0)
 		turn = 1;
@@ -458,7 +461,9 @@ function NextTurn(move)
 		alert("Insufficient material.");
 	}
 
-	UpdateTextAreas(move);
+	UpdateStockfish(moveObject);
+
+	UpdateTextAreas();
 }
 
 function PieceClicked(piece)
@@ -606,7 +611,24 @@ function StockfishPostMessage(message)
 
 function StockfishReceiveData(data)
 {
-	alert(data);
+	if(!stockfishReady)
+	{
+		if(data == "uciok")
+		{
+			stockfishReady = true;
+
+			UpdateStockfishMessage("Ready.");
+		}
+
+		return;
+	}
+
+	var parts = data.split(" ");
+
+	if(parts[0] == "bestmove")
+	{
+		console.log("Best move: " + parts[1]);
+	}
 }
 
 function TextAreaSelect(textArea, start, end) 
@@ -656,6 +678,20 @@ function UpdateMovesTextArea()
 	}
 }
 
+function UpdateStockfish(moveObject)
+{
+	var notation = moveObject.from + moveObject.to;
+
+    StockfishPostMessage("position fen " + chess.fen() + " moves " + notation);
+
+	StockfishPostMessage("go depth 1");
+}
+
+function UpdateStockfishMessage(message)
+{
+	document.getElementById("stockfishMessageSpan").innerHtml = "<i>" + message + "</i>";
+}
+
 function UpdateTextAreas()
 {
 	document.getElementById("FENTextArea").value = chess.fen();
@@ -667,6 +703,13 @@ function UpdateTextAreas()
 function movesTextArea_OnClick()
 {
 	UpdateMovesTextArea();
+}
+
+function stockfishEnableAsPlayerCheckbox_Clicked()
+{
+	var element = document.getElementById("stockfishEnableAsPlayerCheckbox");
+
+	stockfishEnabledAsPlayer = element.checked;
 }
 
 </script>
@@ -1024,6 +1067,25 @@ function movesTextArea_OnClick()
 								<textarea id="movesTextArea" rows="5" readonly onclick="movesTextArea_OnClick();">
 								</textarea>
 							<td>
+						</tr>
+						<tr>
+							<td style="padding-left: 20px; padding-top: 25px; padding-right: 20px; padding-bottom: 25px;">
+								<div style="height: 35px; border: 1px solid gray; border-radius: 5px;">
+									<img src="Images\stockfish-0.png" style="float: left; width: 25px; height: 25px; padding: 5px" />
+									<div style="padding-top: 7px;">
+										<span style="padding-left: 8px; padding-right: 20px;">
+											<b>Stockfish 11</b>
+										</span>
+										<span id="stockfishMessageSpan" style="padding-right: 20px;" >
+											<i>Starting...</i>
+										</span>
+										<input id="stockfishEnableAsPlayerCheckbox" type="checkbox" style="padding-right: 5px;" onclick="stockfishEnableAsPlayerCheckbox_Clicked();" />
+										<span style="padding-left: 5px;" >
+											Enable player.
+										</span>
+									</div>
+								</div>
+							</td>
 						</tr>
 					</table>
 				</div>
