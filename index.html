@@ -51,7 +51,7 @@ stockfish.onmessage = function(event)
     StockfishReceiveData(event.data ? event.data : event);
 };
 
-var stockfishReady = false;
+var stockfishIsReady = false;
 var stockfishEnabledAsPlayer = false;
 
 var turn = 0;
@@ -636,11 +636,11 @@ function StockfishReceiveData(data)
 {
 	console.log("StockfishReceiveData: '" + data + "'");
 
-	if(!stockfishReady)
+	if(!stockfishIsReady)
 	{
 		if(data == "uciok")
 		{
-			stockfishReady = true;
+			stockfishIsReady = true;
 
 			UpdateStockfishMessage("Ready.");
 		}
@@ -705,11 +705,13 @@ function UpdateMovesTextArea()
 
 function UpdateStockfish(moveObject)
 {
+	if(!stockfishIsReady) return;
+
 	var notation = moveObject.from + moveObject.to;
 
     StockfishPostMessage("position fen " + chess.fen() + " moves " + notation);
 
-	StockfishPostMessage("go depth 1");
+	StockfishPostMessage("go depth 10");
 
 	UpdateStockfishMessage("Thinking...");
 }
@@ -742,6 +744,8 @@ function playerPlayAsSelect_OnChange()
 		playerPlayAs = 0;
 	else
 		playerPlayAs = 1;
+
+	UpdateStockfish();
 }
 
 function stockfishEnableAsPlayerCheckbox_OnClick()
