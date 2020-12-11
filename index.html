@@ -629,6 +629,8 @@ function StockfishReceiveData(data)
 	{
 		console.log("Best move: " + parts[1]);
 	}
+
+	UpdateStockfishMessage("Ready.");
 }
 
 function TextAreaSelect(textArea, start, end) 
@@ -685,6 +687,8 @@ function UpdateStockfish(moveObject)
     StockfishPostMessage("position fen " + chess.fen() + " moves " + notation);
 
 	StockfishPostMessage("go depth 1");
+
+	UpdateStockfishMessage("Thinking...");
 }
 
 function UpdateStockfishMessage(message)
