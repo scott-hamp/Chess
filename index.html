@@ -622,6 +622,8 @@ function StockfishBestMoveDecided(moveAsFromTo)
 		if(playerPlayAs == turn)
 			return;
 
+		alert(first + ", " + second);
+
 		Move({ from: first, to: second });
 
 		UpdateStockfishMessage("Moving...");
