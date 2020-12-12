@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html>
 
+<head>
+
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
+
+</head>
+
 <style>
 
 * {
@@ -11,18 +18,32 @@
   z-index: 10;
 }
 
-.piece {
-  position: absolute;
-  z-index: 20;
-}
-
-img {
+.square > img {
   display: block;
   width: 90px;
   height: 90px;
 }
 
-table, table th, table tr, table td {
+.piece {
+  position: absolute;
+  z-index: 20;
+}
+
+.piece > img {
+  display: block;
+  width: 90px;
+  height: 90px;
+}
+
+button > img {
+  display: inline;
+  margin: auto;
+  width: 50%;
+  text-align: center;
+  vertical-align: middle;
+}
+
+#board > table, table th, table tr, table td {
 	margin: 0px;
 	border: 0px;
 	border-spacing: 0px;
@@ -39,22 +60,28 @@ textarea {
 
  <script type="text/javascript" src="chess.js"></script>
  <script type="text/javascript" src="stockfish.js"></script>
+ <script type="text/javascript" src="openings.js"></script>
 
 <script>
 
 const chess = new Chess();
 
-var stockfish = STOCKFISH();
+const stockfish = STOCKFISH();
 
 stockfish.onmessage = function(event) 
 {
     StockfishReceiveData(event.data ? event.data : event);
 };
 
+
 var stockfishIsReady = false;
 var stockfishEnabledAsPlayer = false;
 
 var turn = 0;
+
+var squares = [ "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "c1", "c2", "c3", "c4", "c5", "c6", "c7", "c8", "d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8" ];
+
+var pieces = [ "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "R1", "R2", "N1", "N2", "B1", "B2", "Q1", "Q2", "K", "p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "r1", "r2", "n1", "n2", "b1", "b2", "q1", "q2", "k" ];
 
 var piecesMap = new Array(8);
 
@@ -79,6 +106,8 @@ var gameEnded = false;
 var gameWinner = "";
 var halfMoveIndex = -1;
 var fullMoveIndex = -1;
+var halfMovesHistory = new Array(0);
+var FENHistory = new Array(0);
 
 var squarePixelSize = 90;
 var pieceAnimationSpeed = 2;
@@ -243,6 +272,17 @@ function ClearHighlights()
 
 			HighlightSquare(file + rank, "");
 		} 
+	}
+}
+
+function ClearPiecesMap()
+{
+	for (var i = 0; i < 8; i++) 
+	{ 
+		for (var j = 0; j < 8; j++) 
+		{ 
+			piecesMap[i][j] = "";
+		}
 	}
 }
 
@@ -433,6 +473,17 @@ function NextTurn(moveObject)
 			fullMoveIndex++;
 	}
 
+	if(halfMoveIndex == halfMovesHistory.length - 1)
+	{
+		halfMovesHistory.push(moveObject.san);
+		FENHistory.push(chess.fen());
+	}
+	else
+	{
+		halfMovesHistory[halfMoveIndex] = moveObject.san;
+		FENHistory[halfMoveIndex] = chess.fen();
+	}
+
 	pieceSelected = "";
 	pieceSelectedMoves = null;
 
@@ -472,6 +523,7 @@ function NextTurn(moveObject)
 	UpdateStockfish(moveObject);
 
 	UpdateTextAreas();
+	UpdateOpeningDetails();
 }
 
 function PieceClicked(piece)
@@ -515,9 +567,60 @@ function PieceClicked(piece)
     } 
 }
 
-function SetPiecePosition(name, to) 
+function Reset()
 {
-	var element = document.getElementById("piece_" + name);
+	turn = 0;
+
+	chess.reset();
+
+	halfMoveIndex = -1;
+	fullMoveIndex = -1;
+	halfMovesHistory = new Array(0);
+	FENHistory = new Array(0);
+
+	ClearPiecesMap();
+	SetPiecesStarting();
+
+	ResetStockfish();
+
+	UpdateTextAreas();
+	UpdateOpeningDetails();
+	ClearHighlights();
+}
+
+function ResetStockfish()
+{
+	StockfishPostMessage("position startpos");
+}
+
+function SetMoveRelative(by)
+{
+	if(halfMoveIndex < 0) return;
+
+	halfMoveIndex = Math.min(Math.max(halfMoveIndex + by, 0), halfMovesHistory.length - 1);
+
+	fullMoveIndex = 0;
+
+	for(var i = 0; i < halfMoveIndex; i++)
+	{
+		if((i + 1) % 2 == 0)
+			fullMoveIndex++;
+	}
+
+	chess.load(FENHistory[halfMoveIndex]);
+
+	turn = 0;
+	if(chess.turn() == 'b') turn = 1;
+
+	SetPiecesToBoard();
+
+	UpdateTextAreas();
+	ClearHighlights();
+}
+
+function SetPiecePosition(piece, to) 
+{
+	var element = document.getElementById("piece_" + piece);
 	
 	var rank = to.charAt(1);
 	var file = to.charAt(0);
@@ -530,11 +633,16 @@ function SetPiecePosition(name, to)
 	element.style.left = x + "px";
 	element.style.top = y + "px";
 
-	piecesMap[fileNumber - 1][rank - 1] = name;
+	piecesMap[fileNumber - 1][rank - 1] = piece;
 }
 
-function SetPieces()
+function SetPiecesStarting()
 {
+	ClearPiecesMap();
+
+	for(var i = 0; i < pieces.length; i++)
+		ShowHidePiece(pieces[i], true);
+
 	SetPiecePosition("P1", "a2");
 	SetPiecePosition("P2", "b2");
 	SetPiecePosition("P3", "c2");
@@ -572,9 +680,58 @@ function SetPieces()
 	ShowHidePiece("q2", false);
 }
 
+function SetPiecesToBoard()
+{
+	ClearPiecesMap();
+
+	for(var i = 0; i < pieces.length; i++)
+		ShowHidePiece(pieces[i], true);
+
+	var piecesSet = new Array(0);
+
+	for(var i = 0; i < squares.length; i++)
+	{
+		var piece = chess.get(squares[i]);
+
+		if(piece == null) continue;
+
+		var value = piece.type;
+
+		if(piece.color == 'w') value = value.toUpperCase();
+
+		for(var j = 0; j < pieces.length; j++)
+		{
+			if(pieces[j].charAt(0) != value) continue;
+			if(piecesSet.includes(pieces[j])) continue;
+
+			var rank = squares[i].charAt(1);
+			var file = squares[i].charAt(0);
+
+			var fileNumber = GetFileNumberForLetter(file);
+
+			piecesMap[fileNumber - 1, rank - 1] = pieces[j];
+
+			piecesSet.push(pieces[j]);
+
+			SetPiecePosition(pieces[j], squares[i]);
+
+			break;
+		}
+	}
+
+	for(var i = 0; i < pieces.length; i++)
+	{
+		if(piecesSet.includes(pieces[j])) continue;
+
+		ShowHidePiece(pieces[i], false);
+	}
+}
+
 function Setup()
 {
-	SetPieces();
+	SetupOpenings();
+
+	SetPiecesStarting();
 
 	UpdateTextAreas();
 
@@ -680,26 +837,81 @@ function TextAreaSelect(textArea, start, end)
     textArea.focus();
 } 
 
+function UpdateOpeningDetails()
+{
+	var movesTextArea = document.getElementById("movesTextArea");
+
+	if(movesTextArea.value.length == 0)
+	{
+		openingDetailsSpan.textContent = "...";
+
+		return;
+	}
+
+	var opening = GetOpeningMatchingMoves(movesTextArea.value);
+
+	openingDetailsSpan = document.getElementById("openingDetailsSpan");
+
+	if(opening == null)
+	{
+		var textContent = openingDetailsSpan.textContent;
+
+		if(textContent.length > 3)
+		{
+			if(textContent.substr(textContent.length - 3) != "...")
+				openingDetailsSpan.textContent = textContent + "...";
+		}
+
+		return;
+	}
+
+	openingDetailsSpan.textContent = "(" + opening.ECOCode + ") " + opening.name;
+}
+
 function UpdateMovesTextArea()
 {
-	var pgn = chess.pgn();
+	var movesTextArea = document.getElementById("movesTextArea");
 
-	document.getElementById("movesTextArea").value = pgn;
+	if(halfMoveIndex == -1)
+	{
+		movesTextArea.value = "";
+
+		return;
+	}
+
+	var pgnMoves = "";
+
+	var fullMoveCounter = 0;
+
+	for(var i = 0; i < halfMovesHistory.length; i++)
+	{
+		if(i == 0 || i % 2 == 0)
+		{
+			fullMoveCounter++;
+			pgnMoves += fullMoveCounter + ". ";
+		}
+
+		pgnMoves += halfMovesHistory[i] + " ";
+	}
+
+	pgnMoves = pgnMoves.trim();
+
+	movesTextArea.value = pgnMoves;
 
 	if(fullMoveIndex >= 0)
 	{
-		var history = chess.history({ verbose: true });
+		var parts = pgnMoves.split(" ");
 
-		move = history[halfMoveIndex].san;
+		move = parts[halfMoveIndex + (fullMoveIndex + 1)];
 
-		var indexFirst = pgn.search((fullMoveIndex + 1) + ". ");
-		var indexSecond = pgn.indexOf(move, indexSecond);
-		var indexThird = pgn.indexOf(" ", indexSecond);
+		var indexFirst = pgnMoves.search((fullMoveIndex + 1) + ". ");
+		var indexSecond = pgnMoves.indexOf(move, indexSecond);
+		var indexThird = pgnMoves.indexOf(" ", indexSecond);
 
 		if(indexThird == -1)
-			indexThird = pgn.length + 1;
+			indexThird = pgnMoves.length + 1;
 
-		TextAreaSelect(document.getElementById('movesTextArea'), indexSecond, indexThird - 1);
+		TextAreaSelect(document.getElementById('movesTextArea'), indexSecond, indexThird);
 	}
 }
 
@@ -714,7 +926,7 @@ function UpdateStockfish(moveObject)
 		StockfishPostMessage("position fen " + chess.fen() + " moves " + notation);
 	}
 
-	StockfishPostMessage("go depth 10");
+	StockfishPostMessage("go depth 40");
 
 	UpdateStockfishMessage("Thinking...");
 }
@@ -737,21 +949,34 @@ function movesTextArea_OnClick()
 	UpdateMovesTextArea();
 }
 
+function openingsInput_OnInput()
+{
+	var element = document.getElementById("openingsInput");
+
+	var filter = element.value.trim();
+
+	FillSelectWithOpenings(document.getElementById("openingsSelect"), filter);
+}
+
+function openingsSelect_OnChange()
+{
+	var element = document.getElementById("openingsSelect");
+
+	var index = element.selectedIndex;
+
+	var opening = GetOpeningByIndex(index);
+
+	// ...
+}
+
 function playerPlayAsSelect_OnChange()
 {
 	var element = document.getElementById("playerPlayAsSelect");
 
-	var option = element.options[element.selectedIndex].innerHTML;
+	var playerPlayAs = element.selectedIndex;
 
-	if(option == "White")
-		playerPlayAs = 0;
-	else
-		playerPlayAs = 1;
-
-	var history = chess.history({ verbose: true })
-
-	if(history.length > 0)
-		UpdateStockfish(history[history.length - 1]);
+	if(halfMovesHistory.length > 0)
+		UpdateStockfish(halfMovesHistory[halfMovesHistory.length - 1]);
 	else
 		UpdateStockfish(null);
 }
@@ -765,20 +990,13 @@ function stockfishEnableAsPlayerCheckbox_OnClick()
 
 </script>
 
-<head>
-
-	<link rel="preconnect" href="https://fonts.gstatic.com">
-	<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300&display=swap" rel="stylesheet">
-
-</head>
-
 <body onload="Setup()">
 
 <div id="main">
 	<table id="main-table">
 		<tr>
 			<td>
-				<div id ="board">
+				<div id="board">
 					<table id="squares" cellspacing="0">
 						<tr>
 							<td id="square_a8" class="square" onclick="SquareClicked('a8');">
@@ -1101,7 +1319,7 @@ function stockfishEnableAsPlayerCheckbox_OnClick()
 						<tr>
 							<td style="padding-top: 25px; padding-left: 20px;">
 								<div align="center">
-									<button>
+									<button onclick="Reset();">
 										Reset
 									</button>
 									<span style="padding-left: 15px; padding-right: 5px;">
@@ -1127,6 +1345,44 @@ function stockfishEnableAsPlayerCheckbox_OnClick()
 							<td>
 						</tr>
 						<tr>
+							<td align="center" style="padding-left: 20px; padding-top: 5px; padding-right: 20px;">	
+								<div>
+										<button style="width: 45px; height: 45px; padding: 2px;" onclick="SetMoveRelative(-1000);">
+											<img src="Images\arrow-0.png" style="width: 35px; height: 35px;" />
+										</button>
+										<button style="width: 45px; height: 45px; padding: 2px;" onclick="SetMoveRelative(-1);">
+											<img src="Images\arrow-1.png" style="width: 35px; height: 35px;" />
+										</button>
+										<button style="width: 45px; height: 45px; padding: 2px;" onclick="SetMoveRelative(1);">
+											<img src="Images\arrow-2.png" style="width: 35px; height: 35px;" />
+										</button>
+										<button style="width: 45px; height: 45px; padding: 2px;" onclick="SetMoveRelative(1000);">
+											<img src="Images\arrow-3.png" style="width: 35px; height: 35px;" />
+										</button>
+										<button style="width: 45px; height: 45px; padding: 2px;" onclick="SaveBoardImage();">
+											<img src="Images\save-image-0.png" style="width: 35px; height: 35px;" />
+										</button>
+								</div>
+							<td>
+						</tr>
+						<tr>
+							<td style="padding-left: 20px; padding-top: 20px; padding-right: 20px;">
+								<div align="left" style="display: inline; padding-left: 10px; padding-top: 5px; padding-right: 10px; padding-bottom: 5px; background: #f5f5f0;">
+									<span style="font-size: 12px; font-style: italic;" id="openingDetailsSpan">...</span>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td style="padding-left: 20px; padding-top: 5px; padding-right: 20px;">
+								<div align="left" style="padding-top: 5px;">
+									<input id="openingsInput" type="text" style="padding-right: 10px;" oninput="openingsInput_OnInput();" />
+									<select id="openingsSelect" style="width: 400px;" onChange="openingsSelect_OnChange();">
+										
+									</select>
+								</div>
+							</td>
+						<tr>
+						<tr>
 							<td style="padding-left: 20px; padding-top: 25px; padding-right: 20px; padding-bottom: 25px;">
 								<div style="height: 35px; border: 1px solid gray; border-radius: 5px;">
 									<img src="Images\stockfish-0.png" style="float: left; width: 25px; height: 25px; padding: 5px" />
@@ -1134,7 +1390,7 @@ function stockfishEnableAsPlayerCheckbox_OnClick()
 										<span style="padding-left: 8px; padding-right: 20px;">
 											<b>Stockfish 11</b>
 										</span>
-										<span id="stockfishMessageSpan" style="padding-right: 20px;" >
+										<span id="stockfishMessageSpan" style="padding-right: 20px; font-style: italic;" >
 											Starting...
 										</span>
 										<input id="stockfishEnableAsPlayerCheckbox" type="checkbox" style="padding-right: 5px;" onclick="stockfishEnableAsPlayerCheckbox_OnClick();" />
