@@ -585,7 +585,10 @@ function ResetPuzzle()
 
     Reset();
 
-    chess.load(puzzle.FEN);
+	chess.load(puzzle.FEN);
+	
+	turn = 0;
+	if(chess.turn() == 'b') turn = 1;
 
     SetPiecesToBoard();
 
@@ -885,7 +888,10 @@ function SetToRandomPuzzle()
 
     Reset();
 
-    chess.load(puzzle.FEN);
+	chess.load(puzzle.FEN);
+	
+	turn = 0;
+	if(chess.turn() == 'b') turn = 1;
 
     SetPiecesToBoard();
 
