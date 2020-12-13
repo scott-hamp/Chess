@@ -461,18 +461,38 @@ function NextTurn(moveObject)
 		}
 	}
 
-	if(chess.in_threefold_repetition())
+	if(chess.game_over())
 	{
-		gameEnded = true;
+		gameResult = "1/2-1/2";
 
-		alert("Threefold repetition.");
-	}
+		if(chess.in_checkmate())
+		{
+			gameEnded = true;
+			gameResult = "0-1";
 
-	if(chess.insufficient_material())
-	{
-		gameEnded = true;
+			if(turn == 1)
+				gameResult = "1-0";
 
-		alert("Insufficient material.");
+			alert("Checkmate.");
+		}
+
+		if(chess.in_threefold_repetition())
+		{
+			gameEnded = true;
+			gameResult = "1/2-1/2";
+
+			alert("Threefold repetition.");
+		}
+
+		if(chess.insufficient_material())
+		{
+			gameEnded = true;
+			gameResult = "1/2-1/2";
+
+			alert("Insufficient material.");
+		}
+
+		alert("Score: " + gameResult);
 	}
 
 	if(stockfishEnabledAsPlayer)
