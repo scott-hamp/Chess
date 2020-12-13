@@ -27,6 +27,7 @@ var turn = 0;
 var playerPlayAs = 0;
 var gameEnded = false;
 var gameResult = "";
+var gameScore = "";
 var halfMoveIndex = -1;
 var fullMoveIndex = -1;
 var halfMovesHistory = new Array(0);
@@ -463,36 +464,31 @@ function NextTurn(moveObject)
 
 	if(chess.game_over())
 	{
-		gameResult = "1/2-1/2";
+		gameEnded = true;
+		gameScore = "1/2-1/2";
 
 		if(chess.in_checkmate())
 		{
-			gameEnded = true;
-			gameResult = "0-1";
+			gameResult = "Checkmate.";
+			gameScore = "0-1";
 
 			if(turn == 1)
-				gameResult = "1-0";
-
-			alert("Checkmate.");
+				gameScore = "1-0";
 		}
 
 		if(chess.in_threefold_repetition())
 		{
-			gameEnded = true;
-			gameResult = "1/2-1/2";
-
-			alert("Threefold repetition.");
+			gameResult = "Threefold repetition.";
+			gameScore = "1/2-1/2";
 		}
 
 		if(chess.insufficient_material())
 		{
-			gameEnded = true;
-			gameResult = "1/2-1/2";
-
-			alert("Insufficient material.");
+			gameResult = "Insufficient material.";
+			gameScore = "1/2-1/2";
 		}
 
-		alert("Score: " + gameResult);
+		alert(gameResult + "\nScore: " + gameScore);
 	}
 
 	if(stockfishEnabledAsPlayer)
@@ -556,6 +552,7 @@ function Reset()
 
 	gameEnded = false;
 	gameResult = "";
+	gameScore = "";
 	turn = 0;
 	halfMoveIndex = -1;
 	fullMoveIndex = -1;
@@ -612,6 +609,9 @@ function SaveGame()
 	text += GetTimeString();
 	text += "\n" + document.getElementById("FENTextArea").value;
 	text += "\n" + document.getElementById("movesTextArea").value;
+
+	if(gameEnded)
+		text += "\n" + gameResult + "\nScore: " + gameScore;
 	
 	var blob = new Blob([ text ], { type: 'text/plain' });
 	  
