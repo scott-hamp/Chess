@@ -39,6 +39,7 @@ var pieceSelectedMoves = null;
 var stockfishIsReady = false;
 var stockfishEnabledAsPlayer = false;
 
+var timerStarted = false;
 var timerSecondInterval = null;
 var timerSeconds = (60 * 120) + 1;
 var timerInterval = 10;
@@ -993,15 +994,17 @@ function Setup()
 
 function StartTimer()
 {
-	if(timerSecondInterval != null) return;
+	if(timerStarted) return;
 
+	timerStarted = true;
 	timerSecondInterval = setInterval(UpdateTimer, 1000);
 }
 
 function StopTimer()
 {
-	if(timerSecondInterval == null) return;
+	if(!timerStarted) return;
 
+	timerStarted = false;
 	clearInterval(timerSecondInterval);
 }
 
