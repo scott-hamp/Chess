@@ -534,7 +534,7 @@ function PieceClicked(piece)
 	var position = GetPiecePosition(piece);
 	var color = GetPieceColor(piece);
 
-	alert("position: " + position +"\npieceSelected: " + pieceSelected);
+	//alert("position: " + position +"\npieceSelected: " + pieceSelected);
 
 	if(pieceSelected.length > 0)
 	{
@@ -882,8 +882,12 @@ function StockfishBestMoveDecided(moveAsFromTo)
 			return;
 
 		var from = moveAsFromTo.substr(0, 2);
+		var piece = GetPieceAtPosition(from);
 
-		Move(GetPieceAtPosition(from), moveAsFromTo);
+		alert("StockfishBestMoveDecided: " + moveAsFromTo + 
+			"\npiece: " + piece);
+
+		Move(piece, moveAsFromTo);
 
 		UpdateStockfishMessage("Moving...");
 	}
