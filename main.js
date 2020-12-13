@@ -1189,7 +1189,7 @@ function playerPlayAsSelect_OnChange()
 {
 	var element = document.getElementById("playerPlayAsSelect");
 
-	var playerPlayAs = element.selectedIndex;
+	playerPlayAs = element.selectedIndex;
 
 	if(halfMovesHistory.length > 0)
 		UpdateStockfish(halfMovesHistory[halfMovesHistory.length - 1]);
