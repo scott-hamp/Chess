@@ -284,7 +284,6 @@ function GetDateTimeStringForNow()
 
 function GetDistance(x1, y1, x2, y2) 
 {
-	
 	var xs = x2 - x1;
 	var ys = y2 - y1;	
 	
@@ -696,21 +695,37 @@ function SaveGame()
 {
 	var text = "";
 
-	var date = new Date();
-	text += "[Date \"" + GetDateStringForNow() + "\"]";
+	text += "[Event \"?\"]";
+	text += "\n[Site \"?\"]";
+	text += "\n[Date \"" + GetDateStringForNow() + "\"]";
+	text += "\n[EventDate \"?\"]";
+	text += "\n[Round \"?\"]";
 
 	if(gameEnded)
 		text += "\n[Result \"" + gameScore + "\"]";
+	else
+		text += "\n[Result \"*\"]";
+
+	text += "\n[White \"?\"]";
+	text += "\n[Black \"?\"]";
 
 	var openingDetails = document.getElementById("openingDetailsSpan").textContent;
 
 	if(openingDetails != "...")
 		text += "\n[ECO \"" + openingDetails.substr(1, 3) + "\"]";
 
-	text += "\n[FEN \"" + document.getElementById("FENTextArea").value + "\"]";
-	text += "\n[PlyCount \"" + halfMovesHistory.length + "\"]";
+	text += "\n[WhiteElo \"?\"]";
+	text += "\n[BlackElo \"?\"]";
 
-	text += "\n\n" + document.getElementById("movesTextArea").value;
+	text += "\n[PlyCount \"" + halfMovesHistory.length + "\"]";
+	// text += "\n[FEN \"" + document.getElementById("FENTextArea").value + "\"]";
+
+	var moves = document.getElementById("movesTextArea").value;
+
+	for(var i = 1; i < 1000; i++)
+		moves = moves.replace(i + ". ", i + ".");
+
+	text += "\n\n" + moves;
 
 	if(gameEnded)
 		text += " " + gameScore;
