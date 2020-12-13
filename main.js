@@ -1202,4 +1202,9 @@ function stockfishEnableAsPlayerCheckbox_OnClick()
 	var element = document.getElementById("stockfishEnableAsPlayerCheckbox");
 
 	stockfishEnabledAsPlayer = element.checked;
+
+	if(halfMovesHistory.length > 0)
+		UpdateStockfish(halfMovesHistory[halfMovesHistory.length - 1]);
+	else
+		UpdateStockfish(null);
 }
