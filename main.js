@@ -250,6 +250,19 @@ function ClearPiecesMap()
 	}
 }
 
+function GetDateStringForNow()
+{
+	var date = new Date();
+	var y = (date.getFullYear() + "").toLocaleString
+		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
+	var m = (date.getMonth() + "").toLocaleString
+		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
+	var d = (date.getDate() + "").toLocaleString
+		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
+
+	return y + "." + m + "." + d;
+}
+
 function GetDateTimeStringForNow()
 {
 	var date = new Date();
@@ -266,7 +279,7 @@ function GetDateTimeStringForNow()
 	var s = (date.getSeconds() + "").toLocaleString
 		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
 
-	return y + "/" + m + "/" + d + " " + h + ":" + ms + ":" + s;
+	return y + "." + m + "." + d + " " + h + ":" + ms + ":" + s;
 }
 
 function GetDistance(x1, y1, x2, y2) 
@@ -684,16 +697,27 @@ function SaveGame()
 	var text = "";
 
 	var date = new Date();
-	text += GetDateTimeStringForNow();
-	text += "\n" + document.getElementById("FENTextArea").value;
-	text += "\n" + document.getElementById("movesTextArea").value;
+	text += "[Date \"" + GetDateStringForNow() + "\"]";
 
 	if(gameEnded)
-		text += "\n" + gameResult + "\nScore: " + gameScore;
+		text += "\n[Result \"" + gameScore + "\"]";
+
+	var openingDetails = document.getElementById("openingDetailsSpan").textContent;
+
+	if(openingDetails != "...")
+		text += "\n[ECO \"" + openingDetails.substr(1, 3) + "\"]";
+
+	text += "\n[FEN \"" + document.getElementById("FENTextArea").value + "\"]";
+	text += "\n[PlyCount \"" + halfMovesHistory.length + "\"]";
+
+	text += "\n\n" + document.getElementById("movesTextArea").value;
+
+	if(gameEnded)
+		text += " " + gameScore;
 	
 	var blob = new Blob([ text ], { type: 'text/plain' });
 	  
-	var name = "game.txt";
+	var name = "game.pgn";
 
   	var a = document.createElement("a");
   	a.download = name;
