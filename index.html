@@ -33,6 +33,7 @@
   display: block;
   width: 90px;
   height: 90px;
+  filter: drop-shadow(2px 2px 2px rgb(133, 133, 133));
 }
 
 button > img {
@@ -43,12 +44,20 @@ button > img {
   vertical-align: middle;
 }
 
+#board > table {
+	filter: drop-shadow(5px 5px 5px rgb(133, 133, 133));
+}
+
 #board > table, table th, table tr, table td {
 	margin: 0px;
 	border: 0px;
 	border-spacing: 0px;
 	border-collapse: collapse;
 	padding: 0px;
+}
+
+#info {
+	filter: drop-shadow(5px 5px 5px rgb(133, 133, 133));
 }
 
 textarea {
@@ -60,6 +69,7 @@ textarea {
 
  <script type="text/javascript" src="chess.js"></script>
  <script type="text/javascript" src="stockfish.js"></script>
+ <script type="text/javascript" src="html2canvas.min.js"></script>
  <script type="text/javascript" src="openings.js"></script>
 
 <script>
@@ -475,16 +485,17 @@ function NextTurn(moveObject)
 			fullMoveIndex++;
 	}
 
-	if(halfMoveIndex == halfMovesHistory.length - 1)
+	if(halfMoveIndex <= halfMovesHistory.length - 1)
 	{
-		halfMovesHistory.push(moveObject.san);
-		FENHistory.push(chess.fen());
+		while(halfMoveIndex <= halfMovesHistory.length - 1)
+		{
+			halfMovesHistory.pop();
+			FENHistory.pop();
+		}
 	}
-	else
-	{
-		halfMovesHistory[halfMoveIndex] = moveObject.san;
-		FENHistory[halfMoveIndex] = chess.fen();
-	}
+
+	halfMovesHistory.push(moveObject.san);
+	FENHistory.push(chess.fen());
 
 	pieceSelected = "";
 	pieceSelectedMoves = null;
@@ -601,6 +612,26 @@ function Reset()
 function ResetStockfish()
 {
 	StockfishPostMessage("position startpos");
+}
+
+function SaveBoardAsImage()
+{
+	html2canvas(document.getElementById("board")).then
+		(function(canvas) 
+		{
+			try
+			{
+				var image = canvas.toDataURL("image/png").replace
+					("image/png", "image/octet-stream"); 
+				img.crossOrigin = "anonymous";
+
+				window.location.href = image;
+			}
+			catch(error)
+			{
+				alert("Could not save the board as an image. \n\"" + error.message + "\"");
+			}
+		});
 }
 
 function SetMoveRelative(by)
@@ -816,7 +847,7 @@ function SetPiecesToBoard()
 
 	for(var i = 0; i < pieces.length; i++)
 	{
-		if(piecesSet.includes(pieces[j])) continue;
+		if(piecesSet.includes(pieces[i])) continue;
 
 		ShowHidePiece(pieces[i], false);
 	}
@@ -1460,7 +1491,7 @@ function stockfishEnableAsPlayerCheckbox_OnClick()
 										<button style="width: 45px; height: 45px; padding: 2px;" onclick="SetMoveRelative(1000);">
 											<img src="Images\arrow-3.png" style="width: 35px; height: 35px;" />
 										</button>
-										<button style="width: 45px; height: 45px; padding: 2px;" onclick="SaveBoardImage();">
+										<button style="width: 45px; height: 45px; padding: 2px;" onclick="SaveBoardAsImage();">
 											<img src="Images\save-image-0.png" style="width: 35px; height: 35px;" />
 										</button>
 								</div>
@@ -1477,7 +1508,7 @@ function stockfishEnableAsPlayerCheckbox_OnClick()
 							<td style="padding-left: 20px; padding-top: 5px; padding-right: 20px;">
 								<div align="left" style="padding-top: 5px;">
 									<input id="openingsInput" type="text" style="padding-right: 10px;" oninput="openingsInput_OnInput();" />
-									<select id="openingsSelect" style="width: 400px;" onChange="openingsSelect_OnChange();">
+									<select id="openingsSelect" style="width: 425px;" onChange="openingsSelect_OnChange();">
 										
 									</select>
 								</div>
@@ -1496,7 +1527,7 @@ function stockfishEnableAsPlayerCheckbox_OnClick()
 										</span>
 										<input id="stockfishEnableAsPlayerCheckbox" type="checkbox" style="padding-right: 5px;" onclick="stockfishEnableAsPlayerCheckbox_OnClick();" />
 										<span style="padding-left: 5px;" >
-											Enable player.
+											Enable as player
 										</span>
 									</div>
 								</div>
