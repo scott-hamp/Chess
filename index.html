@@ -926,7 +926,7 @@ function UpdateStockfish(moveObject)
 		StockfishPostMessage("position fen " + chess.fen() + " moves " + notation);
 	}
 
-	StockfishPostMessage("go depth 40");
+	StockfishPostMessage("go depth 1");
 
 	UpdateStockfishMessage("Thinking...");
 }
@@ -1381,7 +1381,7 @@ function stockfishEnableAsPlayerCheckbox_OnClick()
 									</select>
 								</div>
 							</td>
-						<tr>
+						</tr>
 						<tr>
 							<td style="padding-left: 20px; padding-top: 25px; padding-right: 20px; padding-bottom: 25px;">
 								<div style="height: 35px; border: 1px solid gray; border-radius: 5px;">
