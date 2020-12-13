@@ -81,16 +81,12 @@ var pieces = [ "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "R1", "R2", "N1",
 var piecesMap = new Array(8);
 
 for (var i = 0; i < piecesMap.length; i++) 
-{ 
-    piecesMap[i] = new Array(8);
-}
+	piecesMap[i] = new Array(8);
 
 for (var i = 0; i < 8; i++) 
 { 
-    for (var j = 0; j < 8; j++) 
-	{ 
-        piecesMap[i][j] = "";
-    } 
+	for (var j = 0; j < 8; j++) 
+		piecesMap[i][j] = "";
 }
 
 var turn = 0;
@@ -278,12 +274,15 @@ function ClearHighlights()
 
 function ClearPiecesMap()
 {
+	piecesMap = new Array(8);
+
+	for (var i = 0; i < piecesMap.length; i++) 
+		piecesMap[i] = new Array(8);
+
 	for (var i = 0; i < 8; i++) 
 	{ 
 		for (var j = 0; j < 8; j++) 
-		{ 
 			piecesMap[i][j] = "";
-		}
 	}
 }
 
@@ -536,8 +535,6 @@ function PieceClicked(piece)
 	var position = GetPiecePosition(piece);
 	var color = GetPieceColor(piece);
 
-	alert("position: " + position +"\npieceSelected: " + pieceSelected);
-
 	if(pieceSelected.length > 0)
 	{
 		if(GetPieceColor(pieceSelected) != color)
@@ -652,8 +649,6 @@ function SetMoves(moves)
 
 		var piece = GetPieceAtPosition(moveObject.from);
 		var pieceAtMoveTo = GetPieceAtPosition(moveObject.to);
-
-		//alert(moveObject.from + ": " + piece);
 
 		var rank = moveObject.from.charAt(1);
 		var file = moveObject.from.charAt(0);
@@ -798,29 +793,22 @@ function SetPiecesToBoard()
 
 	for(var i = 0; i < squares.length; i++)
 	{
-		var piece = chess.get(squares[i]);
+		var pieceObject = chess.get(squares[i]);
 
-		if(piece == null) continue;
+		if(pieceObject == null) continue;
 
-		var value = piece.type;
+		var value = pieceObject.type;
 
-		if(piece.color == 'w') value = value.toUpperCase();
+		if(pieceObject.color == 'w') value = value.toUpperCase();
 
 		for(var j = 0; j < pieces.length; j++)
 		{
 			if(pieces[j].charAt(0) != value) continue;
 			if(piecesSet.includes(pieces[j])) continue;
 
-			var rank = squares[i].charAt(1);
-			var file = squares[i].charAt(0);
-
-			var fileNumber = GetFileNumberForLetter(file);
-
-			piecesMap[fileNumber - 1, rank - 1] = pieces[j];
+			SetPiecePosition(pieces[j], squares[i]);
 
 			piecesSet.push(pieces[j]);
-
-			SetPiecePosition(pieces[j], squares[i]);
 
 			break;
 		}
@@ -885,9 +873,6 @@ function StockfishBestMoveDecided(moveAsFromTo)
 
 		var from = moveAsFromTo.substr(0, 2);
 		var piece = GetPieceAtPosition(from);
-
-		alert("StockfishBestMoveDecided: " + moveAsFromTo + 
-			"\npiece: " + piece);
 
 		Move(piece, moveAsFromTo);
 
