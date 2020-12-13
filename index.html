@@ -624,7 +624,6 @@ function SaveBoardAsImage()
 				var image = canvas.toDataURL("image/png").replace
 					("image/png", "image/octet-stream"); 
 				image.crossOrigin = "anonymous";
-				image.style.display = "inline";
 
 				var a = document.createElement('a');
 				a.setAttribute('download', 'board.png');
