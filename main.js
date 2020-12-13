@@ -954,8 +954,6 @@ function SquareClicked(square)
 
 function StockfishBestMoveDecided(moveAsFromTo)
 {
-	alert(playerPlayAs + ", " + turn);
-	
 	if(stockfishEnabledAsPlayer)
 	{
 		if(playerPlayAs == turn)
