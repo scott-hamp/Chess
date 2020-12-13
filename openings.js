@@ -5851,6 +5851,8 @@ var openingObjects = new Array(0);
 
 function FillSelectWithOpenings(select, filter)
 {
+	filter = filter.trim();
+
 	while (select.firstChild)
 		select.removeChild(select.lastChild);
 
@@ -5869,14 +5871,23 @@ function FillSelectWithOpenings(select, filter)
 	}
 }
 
-function GetOpeningByIndex(index)
+function GetOpeningByIndex(index, filter)
 {
-	return openingObjects[index];
+	filter = filter.trim();
+	
+	if(filter.length == 0)
+		return openingObjects[index];
+
+	var filtered = GetOpeningsByName(filter);
+
+	if(filtered.length == 0) return null;
+
+	return filtered[index];
 }
 
 function GetOpeningsByName(filter)
 {
-	filter = filter.toLowerCase();
+	filter = filter.trim().toLowerCase();
 
 	var result = new Array(0);
 

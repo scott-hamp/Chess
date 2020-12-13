@@ -74,11 +74,6 @@ stockfish.onmessage = function(event)
 };
 
 
-var stockfishIsReady = false;
-var stockfishEnabledAsPlayer = false;
-
-var turn = 0;
-
 var squares = [ "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "c1", "c2", "c3", "c4", "c5", "c6", "c7", "c8", "d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8" ];
 
 var pieces = [ "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "R1", "R2", "N1", "N2", "B1", "B2", "Q1", "Q2", "K", "p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "r1", "r2", "n1", "n2", "b1", "b2", "q1", "q2", "k" ];
@@ -98,16 +93,20 @@ for (var i = 0; i < 8; i++)
     } 
 }
 
-var pieceSelected = "";
-var pieceSelectedMoves = null;
-
+var turn = 0;
 var playerPlayAs = 0;
 var gameEnded = false;
-var gameWinner = "";
+var gameResult = "";
 var halfMoveIndex = -1;
 var fullMoveIndex = -1;
 var halfMovesHistory = new Array(0);
 var FENHistory = new Array(0);
+
+var pieceSelected = "";
+var pieceSelectedMoves = null;
+
+var stockfishIsReady = false;
+var stockfishEnabledAsPlayer = false;
 
 var squarePixelSize = 90;
 var pieceAnimationSpeed = 2;
@@ -370,10 +369,12 @@ function GetLetterForFileNumber(number)
 
 function GetPieceAtPosition(position)
 {
-	var x1 = GetFileNumberForLetter(position.charAt(0)) - 1;
-	var y1 = position.charAt(1) - 1;
+	var rank = position.charAt(1);
+	var file = position.charAt(0);
 
-	return piecesMap[x1][y1];
+	var fileNumber = GetFileNumberForLetter(file);
+
+	return piecesMap[fileNumber - 1][rank - 1];
 }
 
 function GetPieceColor(piece)
@@ -533,6 +534,8 @@ function PieceClicked(piece)
 	var position = GetPiecePosition(piece);
 	var color = GetPieceColor(piece);
 
+	alert("position: " + position +"\npieceSelected: " + pieceSelected);
+
 	if(pieceSelected.length > 0)
 	{
 		if(GetPieceColor(pieceSelected) != color)
@@ -550,9 +553,14 @@ function PieceClicked(piece)
 		}
 	}
 
+	if(stockfishEnabledAsPlayer)
+	{
+		if(playerPlayAs != turn) return;
+	}
+
 	if((color == "white" && turn == 1) || 
-	   (color == "black" && turn == 0))
-	   return;
+		(color == "black" && turn == 0))
+		return;
 
 	pieceSelected = piece;
 
@@ -569,16 +577,19 @@ function PieceClicked(piece)
 
 function Reset()
 {
-	turn = 0;
-
 	chess.reset();
 
+	gameEnded = false;
+	gameResult = "";
+	turn = 0;
 	halfMoveIndex = -1;
 	fullMoveIndex = -1;
 	halfMovesHistory = new Array(0);
 	FENHistory = new Array(0);
 
-	ClearPiecesMap();
+	pieceSelected = "";
+	pieceSelectedMoves = null;
+
 	SetPiecesStarting();
 
 	ResetStockfish();
@@ -612,18 +623,112 @@ function SetMoveRelative(by)
 	turn = 0;
 	if(chess.turn() == 'b') turn = 1;
 
+	pieceSelected = "";
+	pieceSelectedMoves = null;
+
 	SetPiecesToBoard();
 
 	UpdateTextAreas();
 	ClearHighlights();
 }
 
-function SetPiecePosition(piece, to) 
+function SetMoves(moves)
+{
+	moves = moves.trim();
+
+	Reset();
+
+	for(var i = 1; i < 1000; i++)
+		moves = moves.replace(i + ". ", "");
+
+	var parts = moves.split(" ");
+
+	for(var i = 0; i < parts.length; i++)
+	{
+		var move = parts[i].trim();
+		var moveObject = chess.move(move, { sloppy: true });
+
+		var piece = GetPieceAtPosition(moveObject.from);
+		var pieceAtMoveTo = GetPieceAtPosition(moveObject.to);
+
+		//alert(moveObject.from + ": " + piece);
+
+		var rank = moveObject.from.charAt(1);
+		var file = moveObject.from.charAt(0);
+
+		var fileNumber = GetFileNumberForLetter(file);
+
+		piecesMap[fileNumber - 1][rank - 1] = "";
+
+		SetPiecePosition(piece, moveObject.to);
+
+		if(pieceAtMoveTo.length > 0)
+			ShowHidePiece(pieceAtMoveTo, false);
+
+		var color = GetPieceColor(piece);
+
+		if(move.includes("=Q"))
+		{
+			ShowHidePiece(piece, false);
+
+			if(color == "white")
+			{
+				ShowHidePiece("Q2", true);
+				SetPiecePosition("Q2", moveObject.to);
+			}
+			else
+			{
+				ShowHidePiece("q2", true);
+				SetPiecePosition("q2", moveObject.to);
+			}
+		}
+		else
+		{
+			if(move == "O-O" || move == "O-O-O")
+			{
+				if(move == "O-O")
+				{
+					if(color == "white")
+						SetPiecePosition("R2", "f1");
+					else
+						SetPiecePosition("r2", "f8");
+				}
+				else
+				{
+					if(color == "white")
+						SetPiecePosition("R1", "d1");
+					else
+						SetPiecePosition("r1", "d8");
+				}
+			}
+		}
+
+		halfMoveIndex++;
+		if(fullMoveIndex < 0)
+			fullMoveIndex++;
+		else
+		{
+			if(halfMoveIndex % 2 == 0)
+				fullMoveIndex++;
+		}
+
+		halfMovesHistory.push(moveObject.san);
+		FENHistory.push(chess.fen());
+	}
+
+	turn = 0;
+	if(chess.turn() == 'b') turn = 1;
+
+	UpdateTextAreas();
+	UpdateOpeningDetails();
+}
+
+function SetPiecePosition(piece, position) 
 {
 	var element = document.getElementById("piece_" + piece);
 	
-	var rank = to.charAt(1);
-	var file = to.charAt(0);
+	var rank = position.charAt(1);
+	var file = position.charAt(0);
 
 	var fileNumber = GetFileNumberForLetter(file);
 
@@ -953,7 +1058,7 @@ function openingsInput_OnInput()
 {
 	var element = document.getElementById("openingsInput");
 
-	var filter = element.value.trim();
+	var filter = element.value;
 
 	FillSelectWithOpenings(document.getElementById("openingsSelect"), filter);
 }
@@ -963,10 +1068,13 @@ function openingsSelect_OnChange()
 	var element = document.getElementById("openingsSelect");
 
 	var index = element.selectedIndex;
+	var filter = document.getElementById("openingsInput").value;
 
-	var opening = GetOpeningByIndex(index);
+	var opening = GetOpeningByIndex(index, filter);
 
-	// ...
+	if(opening == null) return;
+
+	SetMoves(opening.moves);
 }
 
 function playerPlayAsSelect_OnChange()
@@ -1368,7 +1476,7 @@ function stockfishEnableAsPlayerCheckbox_OnClick()
 						<tr>
 							<td style="padding-left: 20px; padding-top: 20px; padding-right: 20px;">
 								<div align="left" style="display: inline; padding-left: 10px; padding-top: 5px; padding-right: 10px; padding-bottom: 5px; background: #f5f5f0;">
-									<span style="font-size: 12px; font-style: italic;" id="openingDetailsSpan">...</span>
+									<span style="font-size: 12px;" id="openingDetailsSpan">...</span>
 								</div>
 							</td>
 						</tr>
