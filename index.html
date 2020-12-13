@@ -72,6 +72,7 @@ textarea {
  <script type="text/javascript" src="stockfish.js"></script>
  <script type="text/javascript" src="html2canvas.min.js"></script>
  <script type="text/javascript" src="openings.js"></script>
+ <script type="text/javascript" src="puzzles.js"></script>
  <script type="text/javascript" src="main.js"></script>
 
 <body onload="Setup()">
@@ -466,6 +467,40 @@ textarea {
 									<select id="openingsSelect" style="width: 425px; font-size: 14px;" onChange="openingsSelect_OnChange();">
 										
 									</select>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td style="padding-left: 20px; padding-top: 25px; padding-right: 20px;">
+								<div style="height: 160px; border: 1px dashed gray;">
+									<div>
+										<button id="randomPuzzleButton" style="margin: 10px;" onclick="SetToRandomPuzzle();">
+											Random Puzzle
+										</button>
+										<div style="margin-left: 10px; margin-top: 10px;">
+											<div>
+												<span id="puzzleInstructionsSpan" style="margin-left: 10px;">
+													
+												</span>
+											</div>
+											<div>
+												<span id="puzzleDescriptionSpan" style="margin-left: 10px;">
+													
+												</span>
+											</div>
+											<div style="margin-left: 10px; margin-top: 15px;">
+												<button id="puzzleResetButton" style="display: none;" onclick="ResetPuzzle();">
+													Reset
+												</button>
+												<button id="puzzleSolutionButton" style="margin-left: 2px; display: none;" onclick="ShowPuzzleSolution();">
+													Solution
+												</button>
+												<span id="puzzleSolutionSpan" style="display: none; margin-left: 10px; color: dimgrey;">
+													
+												</span>
+											</div>
+										</div>
+									</div>
 								</div>
 							</td>
 						</tr>

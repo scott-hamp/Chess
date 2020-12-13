@@ -38,6 +38,8 @@ var pieceSelectedMoves = null;
 var stockfishIsReady = false;
 var stockfishEnabledAsPlayer = false;
 
+var currentPuzzle = null;
+
 var squarePixelSize = 90;
 var pieceAnimationSpeed = 2;
 var pieceAnimationSpeedReal = pieceAnimationSpeed * (squarePixelSize / 90);
@@ -541,15 +543,37 @@ function Reset()
 	FENHistory = new Array(0);
 
 	pieceSelected = "";
-	pieceSelectedMoves = null;
+    pieceSelectedMoves = null;
+    
+    currentPuzzle = null;
 
 	SetPiecesStarting();
 
 	ResetStockfish();
 
 	UpdateTextAreas();
-	UpdateOpeningDetails();
+    UpdateOpeningDetails();
+    UpdatePuzzleDetails();
 	ClearHighlights();
+}
+
+function ResetPuzzle()
+{
+    if(currentPuzzle == null) return;
+
+    var puzzle = currentPuzzle;
+
+    Reset();
+
+    chess.load(puzzle.FEN);
+
+    SetPiecesToBoard();
+
+    currentPuzzle = puzzle;
+
+    UpdateTextAreas();
+    UpdateOpeningDetails();
+    UpdatePuzzleDetails();
 }
 
 function ResetStockfish()
@@ -822,9 +846,40 @@ function SetPiecesToBoard()
 	}
 }
 
+function SetToRandomPuzzle()
+{
+    var puzzle = GetRandomPuzzle();
+
+    var validation = chess.validate_fen(puzzle.FEN);
+
+    while(!validation.valid)
+    {
+        /*
+        alert("FEN string is invalid.\n" + puzzle.FEN + "\n\"" + 
+            validation.error + "\"");
+        */
+
+        puzzle = GetRandomPuzzle();
+        validation = chess.validate_fen(puzzle.FEN);
+    }
+
+    Reset();
+
+    chess.load(puzzle.FEN);
+
+    SetPiecesToBoard();
+
+    currentPuzzle = puzzle;
+
+    UpdateTextAreas();
+    UpdateOpeningDetails();
+    UpdatePuzzleDetails();
+}
+
 function Setup()
 {
-	SetupOpenings();
+    SetupOpenings();
+    SetupPuzzles();
 
 	SetPiecesStarting();
 
@@ -845,6 +900,13 @@ function ShowHidePiece(piece, show)
 	{
         element.style.display = "none";
     }
+}
+
+function ShowPuzzleSolution()
+{
+    if(currentPuzzle == null) return;
+
+    document.getElementById("puzzleSolutionSpan").style.display = "inline";
 }
 
 function SquareClicked(square)
@@ -933,37 +995,6 @@ function TextAreaSelect(textArea, start, end)
     textArea.focus();
 } 
 
-function UpdateOpeningDetails()
-{
-	var movesTextArea = document.getElementById("movesTextArea");
-
-	if(movesTextArea.value.length == 0)
-	{
-		openingDetailsSpan.textContent = "...";
-
-		return;
-	}
-
-	var opening = GetOpeningMatchingMoves(movesTextArea.value);
-
-	openingDetailsSpan = document.getElementById("openingDetailsSpan");
-
-	if(opening == null)
-	{
-		var textContent = openingDetailsSpan.textContent;
-
-		if(textContent.length > 3)
-		{
-			if(textContent.substr(textContent.length - 3) != "...")
-				openingDetailsSpan.textContent = textContent + "...";
-		}
-
-		return;
-	}
-
-	openingDetailsSpan.textContent = "(" + opening.ECOCode + ") " + opening.name;
-}
-
 function UpdateMovesTextArea()
 {
 	var movesTextArea = document.getElementById("movesTextArea");
@@ -1009,6 +1040,64 @@ function UpdateMovesTextArea()
 
 		TextAreaSelect(document.getElementById('movesTextArea'), indexSecond, indexThird);
 	}
+}
+
+function UpdateOpeningDetails()
+{
+	var movesTextArea = document.getElementById("movesTextArea");
+
+	if(movesTextArea.value.length == 0)
+	{
+		openingDetailsSpan.textContent = "...";
+
+		return;
+	}
+
+	var opening = GetOpeningMatchingMoves(movesTextArea.value);
+
+	openingDetailsSpan = document.getElementById("openingDetailsSpan");
+
+	if(opening == null)
+	{
+		var textContent = openingDetailsSpan.textContent;
+
+		if(textContent.length > 3)
+		{
+			if(textContent.substr(textContent.length - 3) != "...")
+				openingDetailsSpan.textContent = textContent + "...";
+		}
+
+		return;
+	}
+
+	openingDetailsSpan.textContent = "(" + opening.ECOCode + ") " + opening.name;
+}
+
+function UpdatePuzzleDetails()
+{
+    if(currentPuzzle == null)
+    {
+        document.getElementById("puzzleInstructionsSpan").textContent = "";
+        document.getElementById("puzzleDescriptionSpan").textContent = "";
+        document.getElementById("puzzleResetButton").style.display = "none";
+        document.getElementById("puzzleSolutionButton").style.display = "none";
+        document.getElementById("puzzleSolutionSpan").style.display = "none";
+
+        return;
+    }
+
+    document.getElementById("puzzleInstructionsSpan").textContent = 
+        currentPuzzle.instructions;
+    document.getElementById("puzzleDescriptionSpan").textContent = 
+        currentPuzzle.description;
+    document.getElementById("puzzleResetButton").style.display = 
+        "inline";
+    document.getElementById("puzzleSolutionButton").style.display = 
+        "inline";
+    document.getElementById("puzzleSolutionSpan").style.display = 
+        "none";
+    document.getElementById("puzzleSolutionSpan").textContent = 
+        currentPuzzle.solution;
 }
 
 function UpdateStockfish(moveObject)
