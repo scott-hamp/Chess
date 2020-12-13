@@ -40,7 +40,7 @@ var stockfishIsReady = false;
 var stockfishEnabledAsPlayer = false;
 
 var timerSecondInterval = null;
-var timerSeconds = (60 * 120);
+var timerSeconds = (60 * 120) + 1;
 var timerInterval = 10;
 var whiteTimerSeconds = timerSeconds;
 var blackTimerSeconds = timerSeconds;
