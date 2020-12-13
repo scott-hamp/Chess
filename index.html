@@ -625,7 +625,12 @@ function SaveBoardAsImage()
 					("image/png", "image/octet-stream"); 
 				image.crossOrigin = "anonymous";
 
-				window.location.href = image;
+				var a = document.createElement('a');
+				a.setAttribute('download', 'board.png');
+				a.setAttribute('href', image);
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
 			}
 			catch(error)
 			{
