@@ -536,7 +536,7 @@ function PieceClicked(piece)
 	var position = GetPiecePosition(piece);
 	var color = GetPieceColor(piece);
 
-	//alert("position: " + position +"\npieceSelected: " + pieceSelected);
+	alert("position: " + position +"\npieceSelected: " + pieceSelected);
 
 	if(pieceSelected.length > 0)
 	{
@@ -1506,7 +1506,7 @@ function stockfishEnableAsPlayerCheckbox_OnClick()
 										<span style="padding-left: 8px; padding-right: 20px;">
 											<b>Stockfish 11</b>
 										</span>
-										<span id="stockfishMessageSpan" style="padding-right: 20px; font-style: italic;" >
+										<span id="stockfishMessageSpan" style="padding-right: 20px;" >
 											Starting...
 										</span>
 										<input id="stockfishEnableAsPlayerCheckbox" type="checkbox" style="padding-right: 5px;" onclick="stockfishEnableAsPlayerCheckbox_OnClick();" />
