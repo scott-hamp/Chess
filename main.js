@@ -39,6 +39,14 @@ var pieceSelectedMoves = null;
 var stockfishIsReady = false;
 var stockfishEnabledAsPlayer = false;
 
+var timerSecondInterval = null;
+var timerSeconds = (60 * 120);
+var timerInterval = 10;
+var whiteTimerSeconds = timerSeconds;
+var blackTimerSeconds = timerSeconds;
+var timerSettingIndex = 0;
+var timerSettings = [ "120+10", "30+10", "20+10", "5+5", "3+5", "1+3" ];
+
 var currentPuzzle = null;
 
 var squarePixelSize = 90;
@@ -195,6 +203,24 @@ function AnimatePieceUsingMoveTo(piece, to)
 	}
 }
 
+function ChangeTimerSetting()
+{
+	timerSettingIndex++;
+
+	if(timerSettingIndex >= timerSettings.length)
+		timerSettingIndex = 0;
+	
+	var parts = timerSettings[timerSettingIndex].split("+");
+
+	timerSeconds = (parseInt(parts[0]) * 60) + 1;
+	timerInterval = parseInt(parts[1]);
+
+	ResetTimer();
+
+	document.getElementById("timerSettingButtonSpan").textContent = 
+		timerSettings[timerSettingIndex];
+}
+
 function ClearHighlights()
 {
 	for (var i = 0; i < 8; i++) 
@@ -221,6 +247,25 @@ function ClearPiecesMap()
 		for (var j = 0; j < 8; j++) 
 			piecesMap[i][j] = "";
 	}
+}
+
+function GetDateTimeStringForNow()
+{
+	var date = new Date();
+	var y = (date.getFullYear() + "").toLocaleString
+		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
+	var m = (date.getMonth() + "").toLocaleString
+		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
+	var d = (date.getDate() + "").toLocaleString
+		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
+	var h = (date.getHours() + "").toLocaleString
+		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
+	var ms = (date.getMinutes() + "").toLocaleString
+		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
+	var s = (date.getSeconds() + "").toLocaleString
+		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
+
+	return y + "/" + m + "/" + d + " " + h + ":" + ms + ":" + s;
 }
 
 function GetDistance(x1, y1, x2, y2) 
@@ -344,23 +389,30 @@ function GetPiecePosition(piece)
 	return " ";
 }
 
-function GetTimeString()
+function GetTimeString(seconds)
 {
-	var date = new Date();
-	var y = (date.getFullYear() + "").toLocaleString
-		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
-	var m = (date.getMonth() + "").toLocaleString
-		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
-	var d = (date.getDate() + "").toLocaleString
-		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
-	var h = (date.getHours() + "").toLocaleString
-		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
-	var ms = (date.getMinutes() + "").toLocaleString
-		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
-	var s = (date.getSeconds() + "").toLocaleString
+	var minutes = 0;
+	var hours = 0;
+	while(seconds >= 60)
+	{
+		seconds -= 60;
+		minutes++;
+	}
+	while(minutes >= 60)
+	{
+		minutes -= 60;
+		hours++;
+	}
+
+	var result = 
+		(hours).toLocaleString
+		('en-US', {minimumIntegerDigits: 2, useGrouping:false}) 
+		+ ":" + (minutes).toLocaleString
+		('en-US', {minimumIntegerDigits: 2, useGrouping:false}) 
+		+ ":" + (seconds).toLocaleString
 		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
 
-	return y + "/" + m + "/" + d + " " + h + ":" + ms + ":" + s;
+	return result;
 }
 
 function HighlightSquare(position, type)
@@ -413,6 +465,14 @@ function Move(piece, move)
 				AnimatePieceUsingMoveTo("r1", "d8");
 		}
 	}
+
+	if(turn == 0)
+		whiteTimerSeconds += timerInterval;
+	else
+		blackTimerSeconds += timerInterval;
+
+	UpdateTimer();
+	StartTimer();
 }
 
 function NextTurn(moveObject)
@@ -568,6 +628,8 @@ function Reset()
 
 	ResetStockfish();
 
+	ResetTimer();
+
 	UpdateTextAreas();
     UpdateOpeningDetails();
     UpdatePuzzleDetails();
@@ -601,12 +663,27 @@ function ResetStockfish()
 	StockfishPostMessage("position startpos");
 }
 
+function ResetTimer()
+{
+	StopTimer();
+
+	whiteTimerSeconds = timerSeconds;
+	blackTimerSeconds = timerSeconds;
+
+	var t = turn;
+	turn = 0;
+	UpdateTimer();
+	turn = 1;
+	UpdateTimer();
+	turn = t;
+}
+
 function SaveGame()
 {
 	var text = "";
 
 	var date = new Date();
-	text += GetTimeString();
+	text += GetDateTimeStringForNow();
 	text += "\n" + document.getElementById("FENTextArea").value;
 	text += "\n" + document.getElementById("movesTextArea").value;
 
@@ -914,6 +991,20 @@ function Setup()
 	StockfishPostMessage("uci");
 }
 
+function StartTimer()
+{
+	if(timerSecondInterval != null) return;
+
+	timerSecondInterval = setInterval(UpdateTimer, 1000);
+}
+
+function StopTimer()
+{
+	if(timerSecondInterval == null) return;
+
+	clearInterval(timerSecondInterval);
+}
+
 function ShowHidePiece(piece, show)
 {
 	var element = document.getElementById("piece_" + piece);
@@ -1154,6 +1245,51 @@ function UpdateTextAreas()
 	document.getElementById("FENTextArea").value = chess.fen();
 	
 	UpdateMovesTextArea();
+}
+
+function UpdateTimer()
+{
+	var element = null;
+	var seconds = 0;
+
+	if(turn == 0)
+	{
+		whiteTimerSeconds = Math.max(whiteTimerSeconds - 1, 0);
+		element = document.getElementById("whiteTimerSpan");
+		seconds = whiteTimerSeconds;
+
+		if(!gameEnded)
+		{
+			if(seconds == 0)
+			{
+				gameEnded = true;
+				gameResult = "Out of time.";
+				gameScore = "0-1";
+
+				alert(gameResult + "\nScore: " + gameScore);
+			}
+		}
+	}
+	else
+	{
+		blackTimerSeconds = Math.max(blackTimerSeconds - 1, 0);
+		element = document.getElementById("blackTimerSpan");
+		seconds = blackTimerSeconds;
+
+		if(!gameEnded)
+		{
+			if(seconds == 0)
+			{
+				gameEnded = true;
+				gameResult = "Out of time.";
+				gameScore = "0-1";
+
+				alert(gameResult + "\nScore: " + gameScore);
+			}
+		}
+	}
+
+	element.textContent = GetTimeString(seconds);
 }
 
 
