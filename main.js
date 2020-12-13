@@ -1058,7 +1058,7 @@ function UpdateMovesTextArea()
 		move = parts[halfMoveIndex + (fullMoveIndex + 1)];
 
 		var indexFirst = pgnMoves.search((fullMoveIndex + 1) + ". ");
-		var indexSecond = pgnMoves.indexOf(move, indexSecond);
+		var indexSecond = pgnMoves.indexOf(move, indexFirst);
 		var indexThird = pgnMoves.indexOf(" ", indexSecond);
 
 		if(indexThird == -1)
