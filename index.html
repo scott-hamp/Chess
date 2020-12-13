@@ -623,7 +623,7 @@ function SaveBoardAsImage()
 			{
 				var image = canvas.toDataURL("image/png").replace
 					("image/png", "image/octet-stream"); 
-				img.crossOrigin = "anonymous";
+				image.crossOrigin = "anonymous";
 
 				window.location.href = image;
 			}
