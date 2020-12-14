@@ -524,6 +524,33 @@ function LoadGame()
 			tags.push({ name: tagName, value: tagValue});
 		}
 
+		moves = moves.trim();
+
+		var comments = new Array(0);
+
+		for(var i = 0; i < moves.length; i++)
+		{
+			if(moves.charAt(i) != "{") continue;
+
+			var section = "";
+
+			for(var j = i; j < moves.length; j++)
+			{
+				section += moves.charAt(j) + "";
+
+				if(moves.charAt(j) != "}")
+					continue;
+
+				comments.push(section);
+
+				i = j;
+				break;
+			}
+		}
+
+		for(var i = 0; i < comments.length; i++)
+			moves = moves.replace(comments[i], "");
+
 		for(var i = 1000; i > 0; i--)
 			moves = moves.replace(i + ".", i + ". ");
 
@@ -944,6 +971,9 @@ function SetMoves(moves, clearLastGameLoaded)
 	for(var i = 0; i < parts.length; i++)
 	{
 		var move = parts[i].trim();
+
+		if(move.length == 0) continue;
+
 		var moveObject = chess.move(move, { sloppy: true });
 
 		if(moveObject == null)
