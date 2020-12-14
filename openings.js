@@ -1305,7 +1305,7 @@ B15
 Caro-Kann Defence 
 1. e4 c6 2. d4 d5 3. Nc3 dxe4 4. Nxe4 Nf6 5. Nxf6 exf6 6. Bc4
 B16
-Caro-Kann Defence 
+Caro-Kann Defence, Bronstein-Larsen Variation 
 1. e4 c6 2. d4 d5 3. Nc3 dxe4 4. Nxe4 Nf6 5. Nxf6 gxf6
 B17
 Caro-Kann Defence 
@@ -5871,6 +5871,28 @@ function FillSelectWithOpenings(select, filter)
 	}
 }
 
+function GetLongestOpeningIncludingMoves(moves)
+{
+	var result = null;
+	var length = 0;
+
+	for(var i = 0; i < openingObjects.length; i++)
+	{
+		if(openingObjects[i].moves.length > moves.length) continue;
+		if(moves.substr(0, openingObjects[i].moves.length) != 
+			openingObjects[i].moves) continue;
+
+		var lengthLocal = openingObjects[i].moves.split(" ").length;
+
+		if(lengthLocal <= length) continue;
+
+		result = openingObjects[i];
+		length = lengthLocal;
+	}
+
+	return result;
+}
+
 function GetOpeningByIndex(index, filter)
 {
 	filter = filter.trim();
@@ -5902,6 +5924,18 @@ function GetOpeningsByName(filter)
 	}
 
 	return result;
+}
+
+function GetOpeningMatchingECOCode(ECOCode)
+{
+	for(var i = 0; i < openingObjects.length; i++)
+	{
+		if(openingObjects[i].ECOCode != ECOCode) continue;
+
+		return openingObjects[i];
+	}
+
+	return null;
 }
 
 function GetOpeningMatchingMoves(moves)

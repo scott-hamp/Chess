@@ -555,6 +555,21 @@ function LoadGame()
 		lastGameLoaded = { tags: tags, moves: moves};
 
 		UpdateLastGameLoadedDetails();
+
+		var ECOCode = GetTagValueForLastGameLoaded("ECO");
+
+		if(ECOCode.length == 3)
+		{
+			var opening = GetLongestOpeningIncludingMoves(moves);
+			
+			if(opening != null)
+			{
+				var openingDetailsSpan = document.getElementById("openingDetailsSpan");
+
+				openingDetailsSpan.textContent = "(" + ECOCode + ") " + 
+					opening.name + "...";
+			}
+		}
     }; 
   
 	reader.onerror = (e) => alert("Could not load file.\n\"" 
@@ -1345,6 +1360,7 @@ function UpdateMovesTextArea()
 function UpdateOpeningDetails()
 {
 	var movesTextArea = document.getElementById("movesTextArea");
+	var openingDetailsSpan = document.getElementById("openingDetailsSpan");
 
 	if(movesTextArea.value.length == 0)
 	{
@@ -1354,8 +1370,6 @@ function UpdateOpeningDetails()
 	}
 
 	var opening = GetOpeningMatchingMoves(movesTextArea.value);
-
-	openingDetailsSpan = document.getElementById("openingDetailsSpan");
 
 	if(opening == null)
 	{
