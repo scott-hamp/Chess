@@ -404,7 +404,7 @@ textarea {
 						<tr>
 							<td style="padding-top: 25px; padding-left: 20px;">
 								<div align="center">
-									<button onclick="Reset();">
+									<button onclick="Reset(true);">
 										Reset
 									</button>
 									<span style="padding-left: 15px; padding-right: 5px;">
@@ -438,33 +438,44 @@ textarea {
 						</tr>
 						<tr>
 							<td align="center" style="padding-left: 20px; padding-top: 5px; padding-right: 20px;">
-								<textarea id="movesTextArea" rows="5" readonly onclick="movesTextArea_OnClick();">
+								<textarea id="movesTextArea" rows="3" readonly onclick="movesTextArea_OnClick();">
 								</textarea>
 							<td>
 						</tr>
 						<tr>
-							<td align="center" style="padding-left: 20px; padding-top: 5px; padding-right: 20px;">	
-								<div>
-										<button title="Go to the first move." style="width: 45px; height: 45px; padding: 2px;" onclick="SetMoveRelative(-1000);">
-											<img src="Images\arrow-0.png" style="width: 35px; height: 35px;" />
-										</button>
-										<button title="Go to the previous move." style="width: 45px; height: 45px; padding: 2px;" onclick="SetMoveRelative(-1);">
-											<img src="Images\arrow-1.png" style="width: 35px; height: 35px;" />
-										</button>
-										<button title="Go to the next move." style="width: 45px; height: 45px; padding: 2px;" onclick="SetMoveRelative(1);">
-											<img src="Images\arrow-2.png" style="width: 35px; height: 35px;" />
-										</button>
-										<button title="Go to the last move." style="width: 45px; height: 45px; padding: 2px;" onclick="SetMoveRelative(1000);">
-											<img src="Images\arrow-3.png" style="width: 35px; height: 35px;" />
-										</button>
-										<button title="Save the game." style="width: 45px; height: 45px; margin-left: 20px; padding: 2px;" onclick="SaveGame();">
-											<img src="Images\save-0.png" style="width: 35px; height: 35px;" />
-										</button>
-										<button title="Save the board as an image." style="width: 45px; height: 45px; padding: 2px;" onclick="SaveBoardAsImage();">
-											<img src="Images\save-image-0.png" style="width: 35px; height: 35px;" />
-										</button>
+							<td style="padding-left: 20px; padding-top: 2px; padding-right: 20px;">	
+								<div align="center">
+									<button title="Go to the first move." style="width: 45px; height: 45px; padding: 2px;" onclick="SetMoveRelative(-1000);">
+										<img src="Images\arrow-0.png" style="width: 35px; height: 35px;" />
+									</button>
+									<button title="Go to the previous move." style="width: 45px; height: 45px; padding: 2px;" onclick="SetMoveRelative(-1);">
+										<img src="Images\arrow-1.png" style="width: 35px; height: 35px;" />
+									</button>
+									<button title="Go to the next move." style="width: 45px; height: 45px; padding: 2px;" onclick="SetMoveRelative(1);">
+										<img src="Images\arrow-2.png" style="width: 35px; height: 35px;" />
+									</button>
+									<button title="Go to the last move." style="width: 45px; height: 45px; padding: 2px;" onclick="SetMoveRelative(1000);">
+										<img src="Images\arrow-3.png" style="width: 35px; height: 35px;" />
+									</button>
+									<button title="Save the game, (.pgn)." style="width: 45px; height: 45px; margin-left: 20px; padding: 2px;" onclick="SaveGame();">
+										<img src="Images\save-0.png" style="width: 35px; height: 35px;" />
+									</button>
+									<button id="loadGameButton" title="Load a game, (.pgn)." style="width: 45px; height: 45px; padding: 2px;" onclick="loadGameButton_OnClick();">
+										<img src="Images\load-0.png" style="width: 35px; height: 35px;" />
+									</button>
+									<input id="loadGameInput" type="file" accept=".pgn" style="display: none;" onchange="LoadGame();" />
+									<button title="Save the board as an image, (.png)." style="width: 45px; height: 45px; padding: 2px;" onclick="SaveBoardAsImage();">
+										<img src="Images\save-image-0.png" style="width: 35px; height: 35px;" />
+									</button>
 								</div>
-							<td>
+							</td>
+						</tr>
+						<tr>
+							<td style="padding-left: 20px; padding-top: 10px; padding-right: 20px;">
+								<div align="center" style="padding-left: 10px; padding-top: 5px; padding-right: 10px; padding-bottom: 5px; background: #f5f5f0;">
+									<span style="font-size: 14px;" id="gameDetailsSpan">New game.</span>
+								</div>
+							</td>
 						</tr>
 						<tr>
 							<td style="padding-left: 20px; padding-top: 25px; padding-right: 20px;">

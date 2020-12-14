@@ -49,6 +49,7 @@ var timerSettingIndex = 0;
 var timerSettings = [ "120+10", "30+10", "20+10", "5+5", "3+5", "1+3" ];
 
 var currentPuzzle = null;
+var lastGameLoaded = null;
 
 var squarePixelSize = 90;
 var pieceAnimationSpeed = 2;
@@ -402,6 +403,24 @@ function GetPiecePosition(piece)
 	return " ";
 }
 
+function GetTagValueForLastGameLoaded(tag)
+{
+	tag = tag.trim();
+
+	if(lastGameLoaded == null) return "";
+
+	var tags = lastGameLoaded.tags;
+
+	for(var i = 0; i < tags.length; i++)
+	{
+		if(tags[i].name != tag) continue;
+
+		return tags[i].value;
+	}
+
+	return "";
+}
+
 function GetTimeString(seconds)
 {
 	var minutes = 0;
@@ -447,6 +466,134 @@ function HighlightSquare(position, type)
 	imageSource += ".png";
 
 	element.src = imageSource;
+}
+
+function LoadGame()
+{
+	var element = document.getElementById("loadGameInput");
+
+	var files = element.files;
+  
+    if (files.length == 0) return; 
+
+    const file = files[0]; 
+  
+    var reader = new FileReader();
+  
+	reader.onload = (e) => 
+	{ 
+        const file = e.target.result; 
+		const lines = file.split(/\r\n|\n/); 
+		
+		var tags = new Array(0);
+		var moves = "";
+		var movesSectionStart = false;
+
+		for(var i = 0; i < lines.length; i++)
+		{
+			var line = lines[i].trim();
+
+			if(line.length == 0)
+			{
+				if(movesSectionStart) break;
+
+				movesSectionStart = true;
+				continue;
+			}
+
+			if(movesSectionStart)
+			{
+				moves += line + " ";
+				continue;
+			}
+			
+			line = line.replace("[", "").
+				replace("]", "").
+				replace("\"", "").
+				replace("\"", "");
+			
+			var parts = line.split(" ");
+			var tagName = parts[0];
+			var tagValue = "";
+
+			for(var j = 1; j < parts.length; j++)
+				tagValue += parts[j] + " ";
+
+			tagValue = tagValue.trim();
+
+			tags.push({ name: tagName, value: tagValue});
+		}
+
+		for(var i = 1000; i > 0; i--)
+			moves = moves.replace(i + ".", i + ". ");
+
+		moves = moves.replace("  ", " ").trim();
+		moves = moves.replace("1-0", "").
+			replace("0-1", "").
+			replace("1/2-1/2", "");
+		moves = moves.replace("!!", "").
+			replace("!", "").
+			replace("?!", "").
+			replace("?", "").
+			replace("??", "");
+
+		element.value = null;
+
+		try
+		{
+			SetMoves(moves, true);
+		}
+		catch(error)
+		{
+			alert(error);
+
+			return;
+		}
+
+		lastGameLoaded = { tags: tags, moves: moves};
+
+		UpdateLastGameLoadedDetails();
+    }; 
+  
+	reader.onerror = (e) => alert("Could not load file.\n\"" 
+		+ e.target.error.name + "\""); 
+  
+    reader.readAsText(file);
+}
+
+function LoadRandomGame()
+{
+	var pathToGame = "https://www.chessgames.com/perl/nph-chesspgn?text=1&gid=1139209";
+
+	var loadHtml = function(path, callback) 
+	{
+		var xhr = new XMLHttpRequest();
+
+		xhr.open('GET', path, true);
+		xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+		xhr.setRequestHeader('Content-Type', 'application/text');
+
+		xhr.onreadystatechange = function() 
+		{
+			if (this.readyState !== 4) return;
+			if (this.status !== 200) return;
+
+			callback(this.responseText);
+		};
+
+		xhr.send();
+	};
+
+	var displayHtml = function() 
+	{
+		loadHtml(pathToGame, function(html) {
+			alert(html);
+		});
+
+		return false;
+	};
+
+	displayHtml();
 }
 
 function Move(piece, move)
@@ -619,7 +766,7 @@ function PieceClicked(piece)
     } 
 }
 
-function Reset()
+function Reset(clearLastGameLoaded)
 {
 	chess.reset();
 
@@ -635,7 +782,10 @@ function Reset()
 	pieceSelected = "";
     pieceSelectedMoves = null;
     
-    currentPuzzle = null;
+	currentPuzzle = null;
+
+	if(clearLastGameLoaded)
+		lastGameLoaded = null;
 
 	SetPiecesStarting();
 
@@ -644,6 +794,7 @@ function Reset()
 	ResetTimer();
 
 	UpdateTextAreas();
+	UpdateLastGameLoadedDetails();
     UpdateOpeningDetails();
     UpdatePuzzleDetails();
 	ClearHighlights();
@@ -720,10 +871,12 @@ function SaveGame()
 	text += "\n[PlyCount \"" + halfMovesHistory.length + "\"]";
 	// text += "\n[FEN \"" + document.getElementById("FENTextArea").value + "\"]";
 
-	var moves = document.getElementById("movesTextArea").value;
+	var moves = document.getElementById("movesTextArea").value.trim();
 
+	/*
 	for(var i = 1; i < 1000; i++)
 		moves = moves.replace(i + ". ", i + ".");
+	*/
 
 	text += "\n\n" + moves;
 
@@ -795,11 +948,11 @@ function SetMoveRelative(by)
 	ClearHighlights();
 }
 
-function SetMoves(moves)
+function SetMoves(moves, clearLastGameLoaded)
 {
 	moves = moves.trim();
 
-	Reset();
+	Reset(clearLastGameLoaded);
 
 	for(var i = 1; i < 1000; i++)
 		moves = moves.replace(i + ". ", "");
@@ -810,6 +963,9 @@ function SetMoves(moves)
 	{
 		var move = parts[i].trim();
 		var moveObject = chess.move(move, { sloppy: true });
+
+		if(moveObject == null)
+			throw "Move is not valid.\n\"" + move + "\"";
 
 		var piece = GetPieceAtPosition(moveObject.from);
 		var pieceAtMoveTo = GetPieceAtPosition(moveObject.to);
@@ -1003,7 +1159,7 @@ function SetToRandomPuzzle()
         validation = chess.validate_fen(puzzle.FEN);
     }
 
-    Reset();
+    Reset(true);
 
 	chess.load(puzzle.FEN);
 	
@@ -1029,6 +1185,8 @@ function Setup()
 	UpdateTextAreas();
 
 	StockfishPostMessage("uci");
+
+	LoadRandomGame();
 }
 
 function StartTimer()
@@ -1153,6 +1311,24 @@ function TextAreaSelect(textArea, start, end)
 
     textArea.focus();
 } 
+
+function UpdateLastGameLoadedDetails()
+{
+	element = document.getElementById("gameDetailsSpan");
+
+	if(lastGameLoaded == null)
+	{
+		element.textContent = "New game.";
+
+		return;
+	}
+
+	element.textContent = 
+		GetTagValueForLastGameLoaded("White") + " vs. " + 
+		GetTagValueForLastGameLoaded("Black") 
+		+ ", (" + GetTagValueForLastGameLoaded("Event") 
+		+ ", " + GetTagValueForLastGameLoaded("Date") + ").";
+}
 
 function UpdateMovesTextArea()
 {
@@ -1335,6 +1511,13 @@ function UpdateTimer()
 }
 
 
+function loadGameButton_OnClick()
+{
+	var element = document.getElementById("loadGameInput");
+
+	element.click();
+}
+
 function movesTextArea_OnClick()
 {
 	UpdateMovesTextArea();
@@ -1360,7 +1543,14 @@ function openingsSelect_OnChange()
 
 	if(opening == null) return;
 
-	SetMoves(opening.moves);
+	try
+	{
+		SetMoves(opening.moves, true);
+	}
+	catch(error)
+	{
+		alert(error);
+	}
 }
 
 function playerPlayAsSelect_OnChange()
