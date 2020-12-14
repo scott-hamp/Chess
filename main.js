@@ -561,45 +561,6 @@ function LoadGame()
     reader.readAsText(file);
 }
 
-function LoadRandomGame()
-{
-	var pathToGame = "https://www.chessgames.com/perl/nph-chesspgn?text=1&gid=1139209";
-
-	var loadHtml = function(path, callback) 
-	{
-		alert(path);
-		
-		var xhr = new XMLHttpRequest();
-
-		xhr.open('GET', path, true);
-		xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
-		xhr.setRequestHeader('Content-Type', 'application/text');
-
-		xhr.onreadystatechange = function() 
-		{
-			if (this.readyState !== 4) return;
-			if (this.status !== 200) return;
-
-			alert("response");
-
-			callback(this.responseText);
-		};
-
-		xhr.send();
-	};
-
-	var displayHtml = function() 
-	{
-		loadHtml(pathToGame, function(html) {
-			alert(html);
-		});
-
-		return false;
-	};
-
-	displayHtml();
-}
-
 function Move(piece, move)
 {
 	var moveObject = chess.move(move, { sloppy: true });
@@ -1189,8 +1150,6 @@ function Setup()
 	UpdateTextAreas();
 
 	StockfishPostMessage("uci");
-
-	LoadRandomGame();
 }
 
 function StartTimer()
