@@ -37,6 +37,10 @@
   filter: drop-shadow(2px 2px 2px rgb(133, 133, 133));
 }
 
+button {
+	cursor: pointer;
+}
+
 button > img {
   display: inline;
   margin: auto;
@@ -402,7 +406,7 @@ textarea {
 				<div id="info" style="background-color: lightgray;">
 					<table>
 						<tr>
-							<td style="padding-top: 25px; padding-left: 20px;">
+							<td style="padding-top: 20px; padding-left: 20px;">
 								<div align="center">
 									<button onclick="Reset(true);">
 										Reset
@@ -473,7 +477,11 @@ textarea {
 						<tr>
 							<td style="padding-left: 20px; padding-top: 10px; padding-right: 20px;">
 								<div align="center" style="padding-left: 10px; padding-top: 5px; padding-right: 10px; padding-bottom: 5px; background: #f5f5f0;">
-									<span style="font-size: 14px;" id="gameDetailsSpan">New game.</span>
+									<span style="font-size: 14px;" id="gameDetailsFirstSpan">New game.</span><br>
+									<span style="font-size: 14px; margin-bottom: 5px;" id="gameDetailsSecondSpan">...</span><br>
+									<textarea id="gameCommentTextArea" rows="2" style="margin-top: 10px; font-size: 14px; font-style: italic; background-color: #f0f0f0;">
+
+									</textarea>
 								</div>
 							</td>
 						</tr>
@@ -496,33 +504,22 @@ textarea {
 						</tr>
 						<tr>
 							<td style="padding-left: 20px; padding-top: 25px; padding-right: 20px;">
-								<div style="height: 160px; border: 1px dashed gray;">
+								<div style="height: 85px; border: 1px dashed gray;">
 									<div>
 										<button id="randomPuzzleButton" style="margin: 10px;" onclick="SetToRandomPuzzle();">
 											Random Puzzle
 										</button>
-										<div style="margin-left: 10px; margin-top: 10px;">
-											<div>
-												<span id="puzzleInstructionsSpan" style="margin-left: 10px;">
-													
-												</span>
-											</div>
-											<div>
-												<span id="puzzleDescriptionSpan" style="margin-left: 10px;">
-													
-												</span>
-											</div>
-											<div style="margin-left: 10px; margin-top: 15px;">
-												<button id="puzzleResetButton" style="display: none;" onclick="ResetPuzzle();">
-													Reset
-												</button>
-												<button id="puzzleSolutionButton" style="margin-left: 2px; display: none;" onclick="ShowPuzzleSolution();">
-													Solution
-												</button>
-												<span id="puzzleSolutionSpan" style="display: none; margin-left: 10px; color: dimgrey;">
-													
-												</span>
-											</div>
+										<img id="puzzleInfoImg" src="Images/info-0.png" width="25px" height="25px" style="display: none; margin-left: 25px; margin-bottom: 5px; vertical-align: middle; cursor: pointer;" onclick="puzzleInfoImg_OnClick();" />
+										<button id="puzzleResetButton" style="margin-left: 10px; display: none;" onclick="ResetPuzzle();">
+											Reset
+										</button>
+										<button id="puzzleSolutionButton" style="margin-left: 2px; display: none;" onclick="ShowPuzzleSolution();">
+											Solution
+										</button>
+										<div style="margin-left: 15px; margin-top: 5px;">
+											<span id="puzzleSolutionSpan" style="display: none; color: dimgrey;">
+												
+											</span>
 										</div>
 									</div>
 								</div>

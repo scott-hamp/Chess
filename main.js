@@ -2,24 +2,22 @@ const chess = new Chess();
 
 const stockfish = STOCKFISH();
 
-stockfish.onmessage = function(event) 
-{
-    StockfishReceiveData(event.data ? event.data : event);
+stockfish.onmessage = function (event) {
+	StockfishReceiveData(event.data ? event.data : event);
 };
 
 
-var squares = [ "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "c1", "c2", "c3", "c4", "c5", "c6", "c7", "c8", "d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8" ];
+var squares = ["a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "c1", "c2", "c3", "c4", "c5", "c6", "c7", "c8", "d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8"];
 
-var pieces = [ "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "R1", "R2", "N1", "N2", "B1", "B2", "Q1", "Q2", "K", "p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "r1", "r2", "n1", "n2", "b1", "b2", "q1", "q2", "k" ];
+var pieces = ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "R1", "R2", "N1", "N2", "B1", "B2", "Q1", "Q2", "K", "p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "r1", "r2", "n1", "n2", "b1", "b2", "q1", "q2", "k"];
 
 var piecesMap = new Array(8);
 
-for (var i = 0; i < piecesMap.length; i++) 
+for (var i = 0; i < piecesMap.length; i++)
 	piecesMap[i] = new Array(8);
 
-for (var i = 0; i < 8; i++) 
-{ 
-	for (var j = 0; j < 8; j++) 
+for (var i = 0; i < 8; i++) {
+	for (var j = 0; j < 8; j++)
 		piecesMap[i][j] = "";
 }
 
@@ -46,20 +44,19 @@ var timerInterval = 10;
 var whiteTimerSeconds = timerSeconds;
 var blackTimerSeconds = timerSeconds;
 var timerSettingIndex = 0;
-var timerSettings = [ "120+10", "30+10", "20+10", "5+5", "3+5", "1+3" ];
+var timerSettings = ["120+10", "30+10", "20+10", "5+5", "3+5", "1+3"];
 
 var currentPuzzle = null;
-var lastGameLoaded = null;
+var gameLoaded = null;
 
 var squarePixelSize = 90;
 var pieceAnimationSpeed = 2;
 var pieceAnimationSpeedReal = pieceAnimationSpeed * (squarePixelSize / 90);
 
 
-function AnimatePieceUsingMoveObject(piece, moveObject) 
-{
+function AnimatePieceUsingMoveObject(piece, moveObject) {
 	var element = document.getElementById("piece_" + piece);
-	
+
 	var rank = moveObject.to.charAt(1);
 	var file = moveObject.to.charAt(0);
 
@@ -69,7 +66,7 @@ function AnimatePieceUsingMoveObject(piece, moveObject)
 	var yy = ((squarePixelSize * 7) - ((rank - 1) * squarePixelSize)) + (10 * (squarePixelSize / 90));
 
 	x = element.offsetLeft;
-	y = element.offsetTop; 
+	y = element.offsetTop;
 
 	var x1 = GetFileNumberForLetter(moveObject.from.charAt(0)) - 1;
 	var y1 = moveObject.from.charAt(1) - 1;
@@ -81,76 +78,66 @@ function AnimatePieceUsingMoveObject(piece, moveObject)
 
 	var f1 = setInterval(AnimatePieceUsingMoveObjectUpdate, 1);
 
-    function AnimatePieceUsingMoveObjectUpdate() 
-	{
-		if (x == xx && y == yy)
-		{
-		  piecesMap[x1][y1] = "";
-		  
-		  SetPiecePosition(piece, moveObject.to);
+	function AnimatePieceUsingMoveObjectUpdate() {
+		if (x == xx && y == yy) {
+			piecesMap[x1][y1] = "";
 
-		  if(moveObject.san.includes("=Q"))
-		  {
-			var pieceColor = GetPieceColor(piece);
+			SetPiecePosition(piece, moveObject.to);
 
-			if(pieceColor == "white")
-			{
-				ShowHidePiece("Q2", true);
-				SetPiecePosition("Q2", moveObject.to);
+			if (moveObject.san.includes("=Q")) {
+				var pieceColor = GetPieceColor(piece);
 
-				ShowHidePiece(piece, false);
+				if (pieceColor == "white") {
+					ShowHidePiece("Q2", true);
+					SetPiecePosition("Q2", moveObject.to);
 
-				piecesMap[x2][y2] = "Q2";
+					ShowHidePiece(piece, false);
+
+					piecesMap[x2][y2] = "Q2";
+				}
+				else {
+					ShowHidePiece("q2", true);
+					SetPiecePosition("q2", moveObject.to);
+
+					ShowHidePiece(piece, false);
+
+					piecesMap[x2][y2] = "q2";
+				}
 			}
-			else
-			{
-				ShowHidePiece("q2", true);
-				SetPiecePosition("q2", moveObject.to);
 
-				ShowHidePiece(piece, false);
+			NextTurn(moveObject);
 
-				piecesMap[x2][y2] = "q2";
+			clearInterval(f1);
+		}
+		else {
+			if (x < xx) x += pieceAnimationSpeedReal;
+			if (x > xx) x -= pieceAnimationSpeedReal;
+			if (y < yy) y += pieceAnimationSpeedReal;
+			if (y > yy) y -= pieceAnimationSpeedReal;
+
+			var distance = GetDistance(x, y, xx, yy);
+
+			if (distance <= (pieceAnimationSpeedReal * 1.5)) {
+				x = xx;
+				y = yy;
 			}
-		  }
 
-		  NextTurn(moveObject);
+			element.style.left = x + "px";
+			element.style.top = y + "px";
 
-		  clearInterval(f1);
-		} 
-		else 
-		{
-		  if(x < xx) x += pieceAnimationSpeedReal;
-		  if(x > xx) x -= pieceAnimationSpeedReal;
-		  if(y < yy) y += pieceAnimationSpeedReal;
-		  if(y > yy) y -= pieceAnimationSpeedReal;
-
-		  var distance = GetDistance(x, y, xx, yy);
-
-		  if(distance <= (pieceAnimationSpeedReal * 1.5))
-		  {
-			 x = xx;
-			 y = yy;
-		  }
-
-		  element.style.left = x + "px";
-		  element.style.top = y + "px";
-
-		  if(pieceAtMoveTo.length > 0 && !pieceAtMoveToHidden)
-		  {
-			 if(distance <= 50)
-			 {
-				 pieceAtMoveToHidden = true;
-				 ShowHidePiece(pieceAtMoveTo, false);
-			 }
-		  }
+			if (pieceAtMoveTo.length > 0 && !pieceAtMoveToHidden) {
+				if (distance <= 50) {
+					pieceAtMoveToHidden = true;
+					ShowHidePiece(pieceAtMoveTo, false);
+				}
+			}
 		}
 	}
 }
 
-function AnimatePieceUsingMoveTo(piece, to) 
-{
+function AnimatePieceUsingMoveTo(piece, to) {
 	var element = document.getElementById("piece_" + piece);
-	
+
 	var rank = to.charAt(1);
 	var file = to.charAt(0);
 
@@ -174,44 +161,39 @@ function AnimatePieceUsingMoveTo(piece, to)
 
 	var _f1 = setInterval(AnimatePieceUsingMoveToUpdate, 1);
 
-    function AnimatePieceUsingMoveToUpdate() 
-	{
-		if (_x == _xx && _y == _yy)
-		{
-		  piecesMap[_x1][_y1] = "";
+	function AnimatePieceUsingMoveToUpdate() {
+		if (_x == _xx && _y == _yy) {
+			piecesMap[_x1][_y1] = "";
 
-		  SetPiecePosition(piece, moveObject.to);
+			SetPiecePosition(piece, moveObject.to);
 
-		  clearInterval(_f1);
-		} 
-		else 
-		{
-		  if(_x < _xx) _x += pieceAnimationSpeedReal;
-		  if(_x > _xx) _x -= pieceAnimationSpeedReal;
-		  if(_y < _yy) _y += pieceAnimationSpeedReal;
-		  if(_y > _yy) _y -= pieceAnimationSpeedReal;
+			clearInterval(_f1);
+		}
+		else {
+			if (_x < _xx) _x += pieceAnimationSpeedReal;
+			if (_x > _xx) _x -= pieceAnimationSpeedReal;
+			if (_y < _yy) _y += pieceAnimationSpeedReal;
+			if (_y > _yy) _y -= pieceAnimationSpeedReal;
 
-		  var distance = GetDistance(_x, _y, _xx, _yy);
+			var distance = GetDistance(_x, _y, _xx, _yy);
 
-		  if(distance <= (pieceAnimationSpeedReal * 1.5))
-		  {
-			 _x = _xx;
-			 _y = _yy;
-		  }
+			if (distance <= (pieceAnimationSpeedReal * 1.5)) {
+				_x = _xx;
+				_y = _yy;
+			}
 
-		  element.style.left = _x + "px";
-		  element.style.top = _y + "px";
+			element.style.left = _x + "px";
+			element.style.top = _y + "px";
 		}
 	}
 }
 
-function ChangeTimerSetting()
-{
+function ChangeTimerSetting() {
 	timerSettingIndex++;
 
-	if(timerSettingIndex >= timerSettings.length)
+	if (timerSettingIndex >= timerSettings.length)
 		timerSettingIndex = 0;
-	
+
 	var parts = timerSettings[timerSettingIndex].split("+");
 
 	timerSeconds = (parseInt(parts[0]) * 60) + 1;
@@ -219,153 +201,140 @@ function ChangeTimerSetting()
 
 	ResetTimer();
 
-	document.getElementById("timerSettingButtonSpan").textContent = 
+	document.getElementById("timerSettingButtonSpan").textContent =
 		timerSettings[timerSettingIndex];
 }
 
-function ClearHighlights()
-{
-	for (var i = 0; i < 8; i++) 
-	{ 
-		for (var j = 0; j < 8; j++) 
-		{ 
+function ClearHighlights() {
+	for (var i = 0; i < 8; i++) {
+		for (var j = 0; j < 8; j++) {
 			var rank = j + 1;
 			var file = GetLetterForFileNumber(i + 1);
 
 			HighlightSquare(file + rank, "");
-		} 
+		}
 	}
 }
 
-function ClearPiecesMap()
-{
+function ClearPiecesMap() {
 	piecesMap = new Array(8);
 
-	for (var i = 0; i < piecesMap.length; i++) 
+	for (var i = 0; i < piecesMap.length; i++)
 		piecesMap[i] = new Array(8);
 
-	for (var i = 0; i < 8; i++) 
-	{ 
-		for (var j = 0; j < 8; j++) 
+	for (var i = 0; i < 8; i++) {
+		for (var j = 0; j < 8; j++)
 			piecesMap[i][j] = "";
 	}
 }
 
-function GetDateStringForNow()
-{
+function GetDateStringForNow() {
 	var date = new Date();
 	var y = (date.getFullYear() + "").toLocaleString
-		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
+		('en-US', { minimumIntegerDigits: 2, useGrouping: false });
 	var m = (date.getMonth() + "").toLocaleString
-		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
+		('en-US', { minimumIntegerDigits: 2, useGrouping: false });
 	var d = (date.getDate() + "").toLocaleString
-		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
+		('en-US', { minimumIntegerDigits: 2, useGrouping: false });
 
 	return y + "." + m + "." + d;
 }
 
-function GetDateTimeStringForNow()
-{
+function GetDateTimeStringForNow() {
 	var date = new Date();
 	var y = (date.getFullYear() + "").toLocaleString
-		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
+		('en-US', { minimumIntegerDigits: 2, useGrouping: false });
 	var m = (date.getMonth() + "").toLocaleString
-		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
+		('en-US', { minimumIntegerDigits: 2, useGrouping: false });
 	var d = (date.getDate() + "").toLocaleString
-		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
+		('en-US', { minimumIntegerDigits: 2, useGrouping: false });
 	var h = (date.getHours() + "").toLocaleString
-		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
+		('en-US', { minimumIntegerDigits: 2, useGrouping: false });
 	var ms = (date.getMinutes() + "").toLocaleString
-		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
+		('en-US', { minimumIntegerDigits: 2, useGrouping: false });
 	var s = (date.getSeconds() + "").toLocaleString
-		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
+		('en-US', { minimumIntegerDigits: 2, useGrouping: false });
 
 	return y + "." + m + "." + d + " " + h + ":" + ms + ":" + s;
 }
 
-function GetDistance(x1, y1, x2, y2) 
-{
+function GetDistance(x1, y1, x2, y2) {
 	var xs = x2 - x1;
-	var ys = y2 - y1;	
-	
+	var ys = y2 - y1;
+
 	xs *= xs;
 	ys *= ys;
-	 
+
 	return Math.sqrt(xs + ys);
 };
 
-function GetFileNumberForLetter(letter)
-{
-	switch(letter) 
-	{
-	  case 'a':
-		return 1;
-		break;
-      case 'b':
-		return 2;
-		break;
-	  case 'c':
-		return 3;
-		break;
-	  case 'd':
-		return 4;
-		break;
-	  case 'e':
-		return 5;
-		break;
-	  case 'f':
-		return 6;
-		break;
-      case 'g':
-		return 7;
-		break;
-      case 'h':
-		return 8;
-		break;
-	  default:
-		return -1;
+function GetFileNumberForLetter(letter) {
+	switch (letter) {
+		case 'a':
+			return 1;
+			break;
+		case 'b':
+			return 2;
+			break;
+		case 'c':
+			return 3;
+			break;
+		case 'd':
+			return 4;
+			break;
+		case 'e':
+			return 5;
+			break;
+		case 'f':
+			return 6;
+			break;
+		case 'g':
+			return 7;
+			break;
+		case 'h':
+			return 8;
+			break;
+		default:
+			return -1;
 	}
 
 	return fileNumber;
 }
 
-function GetLetterForFileNumber(number)
-{
-	switch(number) 
-	{
-	  case 1:
-		return 'a';
-		break;
-      case 2:
-		return 'b';
-		break;
-	  case 3:
-		return 'c';
-		break;
-	  case 4:
-		return 'd';
-		break;
-	  case 5:
-		return 'e';
-		break;
-	  case 6:
-		return 'f';
-		break;
-      case 7:
-		return 'g';
-		break;
-      case 8:
-		return 'h';
-		break;
-	  default:
-		return ' '
+function GetLetterForFileNumber(number) {
+	switch (number) {
+		case 1:
+			return 'a';
+			break;
+		case 2:
+			return 'b';
+			break;
+		case 3:
+			return 'c';
+			break;
+		case 4:
+			return 'd';
+			break;
+		case 5:
+			return 'e';
+			break;
+		case 6:
+			return 'f';
+			break;
+		case 7:
+			return 'g';
+			break;
+		case 8:
+			return 'h';
+			break;
+		default:
+			return ' '
 	}
 
 	return fileNumber;
 }
 
-function GetPieceAtPosition(position)
-{
+function GetPieceAtPosition(position) {
 	var rank = position.charAt(1);
 	var file = position.charAt(0);
 
@@ -374,46 +343,40 @@ function GetPieceAtPosition(position)
 	return piecesMap[fileNumber - 1][rank - 1];
 }
 
-function GetPieceColor(piece)
-{
+function GetPieceColor(piece) {
 	var chr = piece.charAt(0);
 
-	if(chr == 'P' || chr == 'R' || chr == 'N' || chr == 'B' || 
-	   chr == 'Q' || chr == 'K')
-	   return "white";
+	if (chr == 'P' || chr == 'R' || chr == 'N' || chr == 'B' ||
+		chr == 'Q' || chr == 'K')
+		return "white";
 
 	return "black";
 }
 
-function GetPiecePosition(piece)
-{
-	for (var i = 0; i < 8; i++) 
-	{ 
-		for (var j = 0; j < 8; j++) 
-		{ 
-			if(piecesMap[i][j] != piece) continue;
+function GetPiecePosition(piece) {
+	for (var i = 0; i < 8; i++) {
+		for (var j = 0; j < 8; j++) {
+			if (piecesMap[i][j] != piece) continue;
 
 			var rank = j + 1;
 			var file = GetLetterForFileNumber(i + 1);
 
 			return file + rank;
-		} 
+		}
 	}
 
 	return " ";
 }
 
-function GetTagValueForLastGameLoaded(tag)
-{
+function GetTagForGameLoaded(tag) {
 	tag = tag.trim();
 
-	if(lastGameLoaded == null) return "";
+	if (gameLoaded == null) return "";
 
-	var tags = lastGameLoaded.tags;
+	var tags = gameLoaded.tags;
 
-	for(var i = 0; i < tags.length; i++)
-	{
-		if(tags[i].name != tag) continue;
+	for (var i = 0; i < tags.length; i++) {
+		if (tags[i].name != tag) continue;
 
 		return tags[i].value;
 	}
@@ -421,45 +384,40 @@ function GetTagValueForLastGameLoaded(tag)
 	return "";
 }
 
-function GetTimeString(seconds)
-{
+function GetTimeString(seconds) {
 	var minutes = 0;
 	var hours = 0;
-	while(seconds >= 60)
-	{
+	while (seconds >= 60) {
 		seconds -= 60;
 		minutes++;
 	}
-	while(minutes >= 60)
-	{
+	while (minutes >= 60) {
 		minutes -= 60;
 		hours++;
 	}
 
-	var result = 
+	var result =
 		(hours).toLocaleString
-		('en-US', {minimumIntegerDigits: 2, useGrouping:false}) 
+			('en-US', { minimumIntegerDigits: 2, useGrouping: false })
 		+ ":" + (minutes).toLocaleString
-		('en-US', {minimumIntegerDigits: 2, useGrouping:false}) 
+			('en-US', { minimumIntegerDigits: 2, useGrouping: false })
 		+ ":" + (seconds).toLocaleString
-		('en-US', {minimumIntegerDigits: 2, useGrouping:false});
+			('en-US', { minimumIntegerDigits: 2, useGrouping: false });
 
 	return result;
 }
 
-function HighlightSquare(position, type)
-{
+function HighlightSquare(position, type) {
 	var element = document.getElementById("square_" + position + "_img");
 
 	var squareColor = chess.square_color(position);
 	var squareColorNumber = 0;
-	if(squareColor == "dark")
+	if (squareColor == "dark")
 		squareColorNumber = 1;
 
 	var imageSource = "Images\\square-" + squareColorNumber;
 
-	if(type.length > 0)
-	{
+	if (type.length > 0) {
 		imageSource += "-" + type;
 	}
 
@@ -468,110 +426,144 @@ function HighlightSquare(position, type)
 	element.src = imageSource;
 }
 
-function LoadGame()
+function LoadGame() 
 {
 	var element = document.getElementById("loadGameInput");
 
 	var files = element.files;
-  
-    if (files.length == 0) return; 
 
-    const file = files[0]; 
-  
-    var reader = new FileReader();
-  
-	reader.onload = (e) => 
-	{ 
-        const file = e.target.result; 
-		const lines = file.split(/\r\n|\n/); 
-		
+	if (files.length == 0) return;
+
+	const file = files[0];
+
+	var fileReader = new FileReader();
+
+	fileReader.onload = (e) => 
+	{
+		const file = e.target.result;
+		const lines = file.split(/\r\n|\n/);
+
 		var tags = new Array(0);
 		var moves = "";
 		var movesSectionStart = false;
 
-		for(var i = 0; i < lines.length; i++)
-		{
+		for (var i = 0; i < lines.length; i++) {
 			var line = lines[i].trim();
 
-			if(line.length == 0)
-			{
-				if(movesSectionStart) break;
+			if (line.length == 0) {
+				if (movesSectionStart) break;
 
 				movesSectionStart = true;
 				continue;
 			}
 
-			if(movesSectionStart)
-			{
+			if (movesSectionStart) {
 				moves += line + " ";
 				continue;
 			}
-			
+
 			line = line.replace("[", "").
 				replace("]", "").
 				replace("\"", "").
 				replace("\"", "");
-			
+
 			var parts = line.split(" ");
 			var tagName = parts[0];
 			var tagValue = "";
 
-			for(var j = 1; j < parts.length; j++)
+			for (var j = 1; j < parts.length; j++)
 				tagValue += parts[j] + " ";
 
 			tagValue = tagValue.trim();
 
-			tags.push({ name: tagName, value: tagValue});
+			tags.push({ name: tagName, value: tagValue });
 		}
 
 		moves = moves.trim();
 
-		var comments = new Array(0);
+		for (var i = 1000; i > 0; i--)
+			moves = moves.replace(i + ".", i + ". ");
 
-		for(var i = 0; i < moves.length; i++)
+		moves = moves.replace("   ", " ").trim();
+		moves = moves.replace("  ", " ").trim();
+
+		/*
+		moves = moves.replace("!!", "").
+			replace("!", "").
+			replace("?!", "").
+			replace("?", "").
+			replace("??", "");
+		*/
+
+		var comments = new Array(0);
+		var halfMoveIndexLocalOffset = 0;
+		var fullMoveIndexLocal = -1;
+
+		for (var i = 0; i < moves.length; i++) 
 		{
-			if(moves.charAt(i) != "{") continue;
+			if (moves.charAt(i) == ".")
+			{
+				i++;
+				fullMoveIndexLocal++;
+
+				continue;
+			}
+
+			if (moves.charAt(i) == " ") 
+			{
+				if (moves.charAt(i + 1) != "{")
+				{
+					halfMoveIndexLocalOffset++;
+
+					if(halfMoveIndexLocalOffset > 1)
+						halfMoveIndexLocalOffset = 0;	
+				}
+
+				continue;
+			}
+
+			if (moves.charAt(i) != "{") continue;
 
 			var section = "";
 
-			for(var j = i; j < moves.length; j++)
+			for (var j = i; j < moves.length; j++) 
 			{
 				section += moves.charAt(j) + "";
 
-				if(moves.charAt(j) != "}")
+				if (moves.charAt(j) != "}")
 					continue;
 
-				comments.push(section);
+				comments.push
+					({
+						section: section,
+						value: section.substr(1, section.length - 2),
+						halfMoveIndex: (fullMoveIndexLocal * 2) + 
+							halfMoveIndexLocalOffset
+					});
 
 				i = j;
 				break;
 			}
 		}
 
-		for(var i = 0; i < comments.length; i++)
-			moves = moves.replace(comments[i], "");
+		for (var i = 0; i < comments.length; i++)
+			moves = moves.replace(comments[i].section, "");
 
-		for(var i = 1000; i > 0; i--)
+		for (var i = 1000; i > 0; i--)
 			moves = moves.replace(i + ".", i + ". ");
 
+		moves = moves.replace("   ", " ").trim();
 		moves = moves.replace("  ", " ").trim();
 		moves = moves.replace("1-0", "").
 			replace("0-1", "").
 			replace("1/2-1/2", "");
-		moves = moves.replace("!!", "").
-			replace("!", "").
-			replace("?!", "").
-			replace("?", "").
-			replace("??", "");
 
 		element.value = null;
 
-		try
-		{
+		try {
 			SetMoves(moves, true);
 		}
-		catch(error)
-		{
+		catch (error) {
 			alert(error);
 
 			return;
@@ -579,34 +571,31 @@ function LoadGame()
 
 		SetMoveRelative(-1000);
 
-		lastGameLoaded = { tags: tags, moves: moves};
+		gameLoaded = { tags: tags, moves: moves, comments: comments };
 
-		UpdateLastGameLoadedDetails();
+		UpdateGameLoadedDetails();
 
-		var ECOCode = GetTagValueForLastGameLoaded("ECO");
+		var ECOCode = GetTagForGameLoaded("ECO");
 
-		if(ECOCode.length == 3)
-		{
+		if (ECOCode.length == 3) {
 			var opening = GetLongestOpeningIncludingMoves(moves);
-			
-			if(opening != null)
-			{
+
+			if (opening != null) {
 				var openingDetailsSpan = document.getElementById("openingDetailsSpan");
 
-				openingDetailsSpan.textContent = "(" + ECOCode + ") " + 
+				openingDetailsSpan.textContent = "(" + ECOCode + ") " +
 					opening.name + "...";
 			}
 		}
-    }; 
-  
-	reader.onerror = (e) => alert("Could not load file.\n\"" 
-		+ e.target.error.name + "\""); 
-  
-    reader.readAsText(file);
+	};
+
+	fileReader.onerror = (e) => alert("Could not load file.\n\""
+		+ e.target.error.name + "\"");
+
+	fileReader.readAsText(file);
 }
 
-function Move(piece, move)
-{
+function Move(piece, move) {
 	var moveObject = chess.move(move, { sloppy: true });
 
 	ClearHighlights();
@@ -617,25 +606,22 @@ function Move(piece, move)
 
 	var color = GetPieceColor(pieceSelected);
 
-	if(move == "O-O" || move == "O-O-O")
-	{
-		if(move == "O-O")
-		{
-			if(color == "white")
+	if (move == "O-O" || move == "O-O-O") {
+		if (move == "O-O") {
+			if (color == "white")
 				AnimatePieceUsingMoveTo("R2", "f1");
 			else
 				AnimatePieceUsingMoveTo("r2", "f8");
 		}
-		else
-		{
-			if(color == "white")
+		else {
+			if (color == "white")
 				AnimatePieceUsingMoveTo("R1", "d1");
 			else
 				AnimatePieceUsingMoveTo("r1", "d8");
 		}
 	}
 
-	if(turn == 0)
+	if (turn == 0)
 		whiteTimerSeconds += timerInterval;
 	else
 		blackTimerSeconds += timerInterval;
@@ -644,26 +630,22 @@ function Move(piece, move)
 	StartTimer();
 }
 
-function NextTurn(moveObject)
-{
-	if(turn == 0)
+function NextTurn(moveObject) {
+	if (turn == 0)
 		turn = 1;
 	else
 		turn = 0;
 
 	halfMoveIndex++;
-	if(fullMoveIndex < 0)
+	if (fullMoveIndex < 0)
 		fullMoveIndex++;
-	else
-	{
-		if(halfMoveIndex % 2 == 0)
+	else {
+		if (halfMoveIndex % 2 == 0)
 			fullMoveIndex++;
 	}
 
-	if(halfMoveIndex <= halfMovesHistory.length - 1)
-	{
-		while(halfMoveIndex <= halfMovesHistory.length - 1)
-		{
+	if (halfMoveIndex <= halfMovesHistory.length - 1) {
+		while (halfMoveIndex <= halfMovesHistory.length - 1) {
 			halfMovesHistory.pop();
 			FENHistory.pop();
 		}
@@ -675,44 +657,37 @@ function NextTurn(moveObject)
 	pieceSelected = "";
 	pieceSelectedMoves = null;
 
-	if(chess.in_check())
-	{
+	if (chess.in_check()) {
 		var position = GetPiecePosition("K");
-		if(turn == 1)
+		if (turn == 1)
 			position = GetPiecePosition("k");
 
-		if(chess.in_checkmate())
-		{
+		if (chess.in_checkmate()) {
 			HighlightSquare(position, "checkmate");
 		}
-		else
-		{
+		else {
 			HighlightSquare(position, "check");
 		}
 	}
 
-	if(chess.game_over())
-	{
+	if (chess.game_over()) {
 		gameEnded = true;
 		gameScore = "1/2-1/2";
 
-		if(chess.in_checkmate())
-		{
+		if (chess.in_checkmate()) {
 			gameResult = "Checkmate.";
 			gameScore = "0-1";
 
-			if(turn == 1)
+			if (turn == 1)
 				gameScore = "1-0";
 		}
 
-		if(chess.in_threefold_repetition())
-		{
+		if (chess.in_threefold_repetition()) {
 			gameResult = "Threefold repetition.";
 			gameScore = "1/2-1/2";
 		}
 
-		if(chess.insufficient_material())
-		{
+		if (chess.insufficient_material()) {
 			gameResult = "Insufficient material.";
 			gameScore = "1/2-1/2";
 		}
@@ -720,7 +695,7 @@ function NextTurn(moveObject)
 		alert(gameResult + "\nScore: " + gameScore);
 	}
 
-	if(stockfishEnabledAsPlayer)
+	if (stockfishEnabledAsPlayer)
 		UpdateStockfishMessage("Ready.");
 
 	UpdateStockfish(moveObject);
@@ -729,36 +704,31 @@ function NextTurn(moveObject)
 	UpdateOpeningDetails();
 }
 
-function PieceClicked(piece)
-{
-	if(gameEnded) return;
+function PieceClicked(piece) {
+	if (gameEnded) return;
 
 	var position = GetPiecePosition(piece);
 	var color = GetPieceColor(piece);
 
-	if(pieceSelected.length > 0)
-	{
-		if(GetPieceColor(pieceSelected) != color)
-		{
-			for (var i = 0; i < pieceSelectedMoves.length; i++) 
-			{ 
-				if(pieceSelectedMoves[i].to != position) continue;
+	if (pieceSelected.length > 0) {
+		if (GetPieceColor(pieceSelected) != color) {
+			for (var i = 0; i < pieceSelectedMoves.length; i++) {
+				if (pieceSelectedMoves[i].to != position) continue;
 
 				Move(pieceSelected, pieceSelectedMoves[i].san);
 
 				break;
-			} 
-		
+			}
+
 			return;
 		}
 	}
 
-	if(stockfishEnabledAsPlayer)
-	{
-		if(playerPlayAs != turn) return;
+	if (stockfishEnabledAsPlayer) {
+		if (playerPlayAs != turn) return;
 	}
 
-	if((color == "white" && turn == 1) || 
+	if ((color == "white" && turn == 1) ||
 		(color == "black" && turn == 0))
 		return;
 
@@ -769,14 +739,12 @@ function PieceClicked(piece)
 	ClearHighlights();
 	HighlightSquare(position, "move");
 
-	for (var i = 0; i < pieceSelectedMoves.length; i++) 
-	{ 
-        HighlightSquare(pieceSelectedMoves[i].to, "move");
-    } 
+	for (var i = 0; i < pieceSelectedMoves.length; i++) {
+		HighlightSquare(pieceSelectedMoves[i].to, "move");
+	}
 }
 
-function Reset(clearLastGameLoaded)
-{
+function Reset(clearLastGameLoaded) {
 	chess.reset();
 
 	gameEnded = false;
@@ -789,12 +757,12 @@ function Reset(clearLastGameLoaded)
 	FENHistory = new Array(0);
 
 	pieceSelected = "";
-    pieceSelectedMoves = null;
-    
+	pieceSelectedMoves = null;
+
 	currentPuzzle = null;
 
-	if(clearLastGameLoaded)
-		lastGameLoaded = null;
+	if (clearLastGameLoaded)
+		gameLoaded = null;
 
 	SetPiecesStarting();
 
@@ -803,41 +771,38 @@ function Reset(clearLastGameLoaded)
 	ResetTimer();
 
 	UpdateTextAreas();
-	UpdateLastGameLoadedDetails();
-    UpdateOpeningDetails();
-    UpdatePuzzleDetails();
+	UpdateGameLoadedDetails();
+	UpdateOpeningDetails();
+	UpdatePuzzleDetails();
 	ClearHighlights();
 }
 
-function ResetPuzzle()
-{
-    if(currentPuzzle == null) return;
+function ResetPuzzle() {
+	if (currentPuzzle == null) return;
 
-    var puzzle = currentPuzzle;
+	var puzzle = currentPuzzle;
 
-    Reset();
+	Reset();
 
 	chess.load(puzzle.FEN);
-	
+
 	turn = 0;
-	if(chess.turn() == 'b') turn = 1;
+	if (chess.turn() == 'b') turn = 1;
 
-    SetPiecesToBoard();
+	SetPiecesToBoard();
 
-    currentPuzzle = puzzle;
+	currentPuzzle = puzzle;
 
-    UpdateTextAreas();
-    UpdateOpeningDetails();
-    UpdatePuzzleDetails();
+	UpdateTextAreas();
+	UpdateOpeningDetails();
+	UpdatePuzzleDetails();
 }
 
-function ResetStockfish()
-{
+function ResetStockfish() {
 	StockfishPostMessage("position startpos");
 }
 
-function ResetTimer()
-{
+function ResetTimer() {
 	StopTimer();
 
 	whiteTimerSeconds = timerSeconds;
@@ -851,8 +816,7 @@ function ResetTimer()
 	turn = t;
 }
 
-function SaveGame()
-{
+function SaveGame() {
 	var text = "";
 
 	text += "[Event \"?\"]";
@@ -861,7 +825,7 @@ function SaveGame()
 	text += "\n[EventDate \"?\"]";
 	text += "\n[Round \"?\"]";
 
-	if(gameEnded)
+	if (gameEnded)
 		text += "\n[Result \"" + gameScore + "\"]";
 	else
 		text += "\n[Result \"*\"]";
@@ -871,7 +835,7 @@ function SaveGame()
 
 	var openingDetails = document.getElementById("openingDetailsSpan").textContent;
 
-	if(openingDetails != "...")
+	if (openingDetails != "...")
 		text += "\n[ECO \"" + openingDetails.substr(1, 3) + "\"]";
 
 	text += "\n[WhiteElo \"?\"]";
@@ -889,30 +853,28 @@ function SaveGame()
 
 	text += "\n\n" + moves;
 
-	if(gameEnded)
+	if (gameEnded)
 		text += " " + gameScore;
-	
-	var blob = new Blob([ text ], { type: 'text/plain' });
-	  
+
+	var blob = new Blob([text], { type: 'text/plain' });
+
 	var name = "game.pgn";
 
-  	var a = document.createElement("a");
-  	a.download = name;
+	var a = document.createElement("a");
+	a.download = name;
 	a.href = window.URL.createObjectURL(blob);
 	document.body.appendChild(a);
 	a.click();
 	document.body.removeChild(a);
 }
 
-function SaveBoardAsImage()
+function SaveBoardAsImage() 
 {
 	html2canvas(document.getElementById("board")).then
-		(function(canvas) 
-		{
-			try
-			{
+		(function (canvas) {
+			try {
 				var image = canvas.toDataURL("image/png").replace
-					("image/png", "image/octet-stream"); 
+					("image/png", "image/octet-stream");
 				image.crossOrigin = "anonymous";
 
 				var a = document.createElement('a');
@@ -922,31 +884,29 @@ function SaveBoardAsImage()
 				a.click();
 				document.body.removeChild(a);
 			}
-			catch(error)
-			{
+			catch (error) {
 				alert("Could not save the board as an image. \n\"" + error.message + "\"");
 			}
 		});
 }
 
-function SetMoveRelative(by)
+function SetMoveRelative(by) 
 {
-	if(halfMoveIndex < 0) return;
+	if (halfMoveIndex < 0) return;
 
 	halfMoveIndex = Math.min(Math.max(halfMoveIndex + by, 0), halfMovesHistory.length - 1);
 
 	fullMoveIndex = 0;
 
-	for(var i = 0; i < halfMoveIndex; i++)
-	{
-		if((i + 1) % 2 == 0)
+	for (var i = 0; i < halfMoveIndex; i++) {
+		if ((i + 1) % 2 == 0)
 			fullMoveIndex++;
 	}
 
 	chess.load(FENHistory[halfMoveIndex]);
 
 	turn = 0;
-	if(chess.turn() == 'b') turn = 1;
+	if (chess.turn() == 'b') turn = 1;
 
 	pieceSelected = "";
 	pieceSelectedMoves = null;
@@ -954,29 +914,28 @@ function SetMoveRelative(by)
 	SetPiecesToBoard();
 
 	UpdateTextAreas();
+	UpdateGameLoadedDetails();
 	ClearHighlights();
 }
 
-function SetMoves(moves, clearLastGameLoaded)
-{
+function SetMoves(moves, clearLastGameLoaded) {
 	moves = moves.trim();
 
 	Reset(clearLastGameLoaded);
 
-	for(var i = 1; i < 1000; i++)
+	for (var i = 1; i < 1000; i++)
 		moves = moves.replace(i + ". ", "");
 
 	var parts = moves.split(" ");
 
-	for(var i = 0; i < parts.length; i++)
-	{
+	for (var i = 0; i < parts.length; i++) {
 		var move = parts[i].trim();
 
-		if(move.length == 0) continue;
+		if (move.length == 0) continue;
 
 		var moveObject = chess.move(move, { sloppy: true });
 
-		if(moveObject == null)
+		if (moveObject == null)
 			throw "Move is not valid.\n\"" + move + "\"";
 
 		var piece = GetPieceAtPosition(moveObject.from);
@@ -991,40 +950,33 @@ function SetMoves(moves, clearLastGameLoaded)
 
 		SetPiecePosition(piece, moveObject.to);
 
-		if(pieceAtMoveTo.length > 0)
+		if (pieceAtMoveTo.length > 0)
 			ShowHidePiece(pieceAtMoveTo, false);
 
 		var color = GetPieceColor(piece);
 
-		if(move.includes("=Q"))
-		{
+		if (move.includes("=Q")) {
 			ShowHidePiece(piece, false);
 
-			if(color == "white")
-			{
+			if (color == "white") {
 				ShowHidePiece("Q2", true);
 				SetPiecePosition("Q2", moveObject.to);
 			}
-			else
-			{
+			else {
 				ShowHidePiece("q2", true);
 				SetPiecePosition("q2", moveObject.to);
 			}
 		}
-		else
-		{
-			if(move == "O-O" || move == "O-O-O")
-			{
-				if(move == "O-O")
-				{
-					if(color == "white")
+		else {
+			if (move == "O-O" || move == "O-O-O") {
+				if (move == "O-O") {
+					if (color == "white")
 						SetPiecePosition("R2", "f1");
 					else
 						SetPiecePosition("r2", "f8");
 				}
-				else
-				{
-					if(color == "white")
+				else {
+					if (color == "white")
 						SetPiecePosition("R1", "d1");
 					else
 						SetPiecePosition("r1", "d8");
@@ -1033,11 +985,10 @@ function SetMoves(moves, clearLastGameLoaded)
 		}
 
 		halfMoveIndex++;
-		if(fullMoveIndex < 0)
+		if (fullMoveIndex < 0)
 			fullMoveIndex++;
-		else
-		{
-			if(halfMoveIndex % 2 == 0)
+		else {
+			if (halfMoveIndex % 2 == 0)
 				fullMoveIndex++;
 		}
 
@@ -1046,16 +997,15 @@ function SetMoves(moves, clearLastGameLoaded)
 	}
 
 	turn = 0;
-	if(chess.turn() == 'b') turn = 1;
+	if (chess.turn() == 'b') turn = 1;
 
 	UpdateTextAreas();
 	UpdateOpeningDetails();
 }
 
-function SetPiecePosition(piece, position) 
-{
+function SetPiecePosition(piece, position) {
 	var element = document.getElementById("piece_" + piece);
-	
+
 	var rank = position.charAt(1);
 	var file = position.charAt(0);
 
@@ -1070,11 +1020,10 @@ function SetPiecePosition(piece, position)
 	piecesMap[fileNumber - 1][rank - 1] = piece;
 }
 
-function SetPiecesStarting()
-{
+function SetPiecesStarting() {
 	ClearPiecesMap();
 
-	for(var i = 0; i < pieces.length; i++)
+	for (var i = 0; i < pieces.length; i++)
 		ShowHidePiece(pieces[i], true);
 
 	SetPiecePosition("P1", "a2");
@@ -1114,29 +1063,26 @@ function SetPiecesStarting()
 	ShowHidePiece("q2", false);
 }
 
-function SetPiecesToBoard()
-{
+function SetPiecesToBoard() {
 	ClearPiecesMap();
 
-	for(var i = 0; i < pieces.length; i++)
+	for (var i = 0; i < pieces.length; i++)
 		ShowHidePiece(pieces[i], true);
 
 	var piecesSet = new Array(0);
 
-	for(var i = 0; i < squares.length; i++)
-	{
+	for (var i = 0; i < squares.length; i++) {
 		var pieceObject = chess.get(squares[i]);
 
-		if(pieceObject == null) continue;
+		if (pieceObject == null) continue;
 
 		var value = pieceObject.type;
 
-		if(pieceObject.color == 'w') value = value.toUpperCase();
+		if (pieceObject.color == 'w') value = value.toUpperCase();
 
-		for(var j = 0; j < pieces.length; j++)
-		{
-			if(pieces[j].charAt(0) != value) continue;
-			if(piecesSet.includes(pieces[j])) continue;
+		for (var j = 0; j < pieces.length; j++) {
+			if (pieces[j].charAt(0) != value) continue;
+			if (piecesSet.includes(pieces[j])) continue;
 
 			SetPiecePosition(pieces[j], squares[i]);
 
@@ -1146,51 +1092,47 @@ function SetPiecesToBoard()
 		}
 	}
 
-	for(var i = 0; i < pieces.length; i++)
-	{
-		if(piecesSet.includes(pieces[i])) continue;
+	for (var i = 0; i < pieces.length; i++) {
+		if (piecesSet.includes(pieces[i])) continue;
 
 		ShowHidePiece(pieces[i], false);
 	}
 }
 
-function SetToRandomPuzzle()
-{
-    var puzzle = GetRandomPuzzle();
+function SetToRandomPuzzle() {
+	var puzzle = GetRandomPuzzle();
 
-    var validation = chess.validate_fen(puzzle.FEN);
+	var validation = chess.validate_fen(puzzle.FEN);
 
-    while(!validation.valid)
-    {
-        /*
-        alert("FEN string is invalid.\n" + puzzle.FEN + "\n\"" + 
-            validation.error + "\"");
-        */
+	while (!validation.valid) {
+		/*
+		alert("FEN string is invalid.\n" + puzzle.FEN + "\n\"" + 
+			validation.error + "\"");
+		*/
 
-        puzzle = GetRandomPuzzle();
-        validation = chess.validate_fen(puzzle.FEN);
-    }
+		puzzle = GetRandomPuzzle();
+		validation = chess.validate_fen(puzzle.FEN);
+	}
 
-    Reset(true);
+	Reset(true);
 
 	chess.load(puzzle.FEN);
-	
+
 	turn = 0;
-	if(chess.turn() == 'b') turn = 1;
+	if (chess.turn() == 'b') turn = 1;
 
-    SetPiecesToBoard();
+	SetPiecesToBoard();
 
-    currentPuzzle = puzzle;
+	currentPuzzle = puzzle;
 
-    UpdateTextAreas();
-    UpdateOpeningDetails();
-    UpdatePuzzleDetails();
+	UpdateTextAreas();
+	UpdateOpeningDetails();
+	UpdatePuzzleDetails();
 }
 
-function Setup()
-{
-    SetupOpenings();
-    SetupPuzzles();
+function Setup() {
+	SetupOpenings();
+	SetupPuzzles();
 
 	SetPiecesStarting();
 
@@ -1199,65 +1141,55 @@ function Setup()
 	StockfishPostMessage("uci");
 }
 
-function StartTimer()
-{
-	if(timerStarted) return;
+function StartTimer() {
+	if (timerStarted) return;
 
 	timerStarted = true;
 	timerSecondInterval = setInterval(UpdateTimer, 1000);
 }
 
-function StopTimer()
-{
-	if(!timerStarted) return;
+function StopTimer() {
+	if (!timerStarted) return;
 
 	timerStarted = false;
 	clearInterval(timerSecondInterval);
 }
 
-function ShowHidePiece(piece, show)
-{
+function ShowHidePiece(piece, show) {
 	var element = document.getElementById("piece_" + piece);
 
-	if (show) 
-	{
-        element.style.display = "block";
-    } 
-	else 
-	{
-        element.style.display = "none";
-    }
+	if (show) {
+		element.style.display = "block";
+	}
+	else {
+		element.style.display = "none";
+	}
 }
 
-function ShowPuzzleSolution()
-{
-    if(currentPuzzle == null) return;
+function ShowPuzzleSolution() {
+	if (currentPuzzle == null) return;
 
-    document.getElementById("puzzleSolutionSpan").style.display = "inline";
+	document.getElementById("puzzleSolutionSpan").style.display = "inline";
 }
 
-function SquareClicked(square)
-{
-	if(pieceSelected.length == 0)
+function SquareClicked(square) {
+	if (pieceSelected.length == 0)
 		return;
 
-	for (var i = 0; i < pieceSelectedMoves.length; i++) 
-	{ 
-        if(pieceSelectedMoves[i].to != square) continue;
+	for (var i = 0; i < pieceSelectedMoves.length; i++) {
+		if (pieceSelectedMoves[i].to != square) continue;
 
 		var san = pieceSelectedMoves[i].san;
 
 		Move(pieceSelected, san);
 
 		break;
-    }
+	}
 }
 
-function StockfishBestMoveDecided(moveAsFromTo)
-{
-	if(stockfishEnabledAsPlayer)
-	{
-		if(playerPlayAs == turn)
+function StockfishBestMoveDecided(moveAsFromTo) {
+	if (stockfishEnabledAsPlayer) {
+		if (playerPlayAs == turn)
 			return;
 
 		var from = moveAsFromTo.substr(0, 2);
@@ -1269,19 +1201,15 @@ function StockfishBestMoveDecided(moveAsFromTo)
 	}
 }
 
-function StockfishPostMessage(message)
-{
+function StockfishPostMessage(message) {
 	stockfish.postMessage(message);
 }
 
-function StockfishReceiveData(data)
-{
+function StockfishReceiveData(data) {
 	console.log("StockfishReceiveData: '" + data + "'");
 
-	if(!stockfishIsReady)
-	{
-		if(data == "uciok")
-		{
+	if (!stockfishIsReady) {
+		if (data == "uciok") {
 			stockfishIsReady = true;
 
 			UpdateStockfishMessage("Ready.");
@@ -1292,60 +1220,71 @@ function StockfishReceiveData(data)
 
 	var parts = data.split(" ");
 
-	if(parts[0] == "bestmove")
+	if (parts[0] == "bestmove")
 		StockfishBestMoveDecided(parts[1]);
 
 	UpdateStockfishMessage("Ready.");
 }
 
-function TextAreaSelect(textArea, start, end) 
-{
-    if(textArea.createTextRange) 
-	{
-        var range = textArea.createTextRange();
+function TextAreaSelect(textArea, start, end) {
+	if (textArea.createTextRange) {
+		var range = textArea.createTextRange();
 
-        range.collapse(true);
-        range.moveStart('character', start);
-        range.moveEnd('character', end);
-        range.select();
-    } 
-	else if(textArea.setSelectionRange) 
-	{
-        textArea.setSelectionRange(start, end);
-    } 
-	else if(textArea.selectionStart) 
-	{
-        textArea.selectionStart = start;
-        textArea.selectionEnd = end;
-    }
+		range.collapse(true);
+		range.moveStart('character', start);
+		range.moveEnd('character', end);
+		range.select();
+	}
+	else if (textArea.setSelectionRange) {
+		textArea.setSelectionRange(start, end);
+	}
+	else if (textArea.selectionStart) {
+		textArea.selectionStart = start;
+		textArea.selectionEnd = end;
+	}
 
-    textArea.focus();
-} 
+	textArea.focus();
+}
 
-function UpdateLastGameLoadedDetails()
-{
-	element = document.getElementById("gameDetailsSpan");
+function UpdateGameLoadedDetails() {
+	var first = document.getElementById("gameDetailsFirstSpan");
+	var second = document.getElementById("gameDetailsSecondSpan");
 
-	if(lastGameLoaded == null)
-	{
-		element.textContent = "New game.";
+	if (gameLoaded == null) {
+		first.textContent = "New game.";
+		second.textContent = "...";
 
 		return;
 	}
 
-	element.textContent = 
-		GetTagValueForLastGameLoaded("White") + " vs. " + 
-		GetTagValueForLastGameLoaded("Black") 
-		+ ", (" + GetTagValueForLastGameLoaded("Event") 
-		+ ", " + GetTagValueForLastGameLoaded("Date") + ").";
+	first.textContent =
+		GetTagForGameLoaded("White") + " vs. " +
+		GetTagForGameLoaded("Black") + "  (" +
+		GetTagForGameLoaded("Result") + ")";
+
+	second.textContent =
+		GetTagForGameLoaded("Event")
+		+ ", " + GetTagForGameLoaded("Date") + ".";
+
+	var gameCommentTextArea = document.getElementById("gameCommentTextArea");
+
+	gameCommentTextArea.value = "";
+
+	for (var i = 0; i < gameLoaded.comments.length; i++) {
+		var comment = gameLoaded.comments[i];
+
+		if (comment.halfMoveIndex != halfMoveIndex) continue;
+
+		gameCommentTextArea.value = comment.value;
+
+		break;
+	}
 }
 
-function UpdateMovesTextArea()
-{
+function UpdateMovesTextArea() {
 	var movesTextArea = document.getElementById("movesTextArea");
 
-	if(halfMoveIndex == -1)
-	{
+	if (halfMoveIndex == -1) {
 		movesTextArea.value = "";
 
 		return;
@@ -1355,10 +1294,8 @@ function UpdateMovesTextArea()
 
 	var fullMoveCounter = 0;
 
-	for(var i = 0; i < halfMovesHistory.length; i++)
-	{
-		if(i == 0 || i % 2 == 0)
-		{
+	for (var i = 0; i < halfMovesHistory.length; i++) {
+		if (i == 0 || i % 2 == 0) {
 			fullMoveCounter++;
 			pgnMoves += fullMoveCounter + ". ";
 		}
@@ -1370,8 +1307,7 @@ function UpdateMovesTextArea()
 
 	movesTextArea.value = pgnMoves;
 
-	if(fullMoveIndex >= 0)
-	{
+	if (fullMoveIndex >= 0) {
 		var parts = pgnMoves.split(" ");
 
 		move = parts[halfMoveIndex + (fullMoveIndex + 1)];
@@ -1380,20 +1316,18 @@ function UpdateMovesTextArea()
 		var indexSecond = pgnMoves.indexOf(move, indexFirst);
 		var indexThird = pgnMoves.indexOf(" ", indexSecond);
 
-		if(indexThird == -1)
+		if (indexThird == -1)
 			indexThird = pgnMoves.length + 1;
 
 		TextAreaSelect(document.getElementById('movesTextArea'), indexSecond, indexThird);
 	}
 }
 
-function UpdateOpeningDetails()
-{
+function UpdateOpeningDetails() {
 	var movesTextArea = document.getElementById("movesTextArea");
 	var openingDetailsSpan = document.getElementById("openingDetailsSpan");
 
-	if(movesTextArea.value.length == 0)
-	{
+	if (movesTextArea.value.length == 0) {
 		openingDetailsSpan.textContent = "...";
 
 		return;
@@ -1401,13 +1335,11 @@ function UpdateOpeningDetails()
 
 	var opening = GetOpeningMatchingMoves(movesTextArea.value);
 
-	if(opening == null)
-	{
+	if (opening == null) {
 		var textContent = openingDetailsSpan.textContent;
 
-		if(textContent.length > 3)
-		{
-			if(textContent.substr(textContent.length - 3) != "...")
+		if (textContent.length > 3) {
+			if (textContent.substr(textContent.length - 3) != "...")
 				openingDetailsSpan.textContent = textContent + "...";
 		}
 
@@ -1417,39 +1349,36 @@ function UpdateOpeningDetails()
 	openingDetailsSpan.textContent = "(" + opening.ECOCode + ") " + opening.name;
 }
 
-function UpdatePuzzleDetails()
-{
-    if(currentPuzzle == null)
-    {
-        document.getElementById("puzzleInstructionsSpan").textContent = "";
-        document.getElementById("puzzleDescriptionSpan").textContent = "";
-        document.getElementById("puzzleResetButton").style.display = "none";
-        document.getElementById("puzzleSolutionButton").style.display = "none";
-        document.getElementById("puzzleSolutionSpan").style.display = "none";
+function UpdatePuzzleDetails() {
+	if (currentPuzzle == null) {
+		document.getElementById("puzzleInfoImg").style.display = "none";
+		document.getElementById("puzzleResetButton").style.display = "none";
+		document.getElementById("puzzleSolutionButton").style.display = "none";
+		document.getElementById("puzzleSolutionSpan").style.display = "none";
 
-        return;
-    }
+		return;
+	}
 
-    document.getElementById("puzzleInstructionsSpan").textContent = 
-        currentPuzzle.instructions;
-    document.getElementById("puzzleDescriptionSpan").textContent = 
-        currentPuzzle.description;
-    document.getElementById("puzzleResetButton").style.display = 
-        "inline";
-    document.getElementById("puzzleSolutionButton").style.display = 
-        "inline";
-    document.getElementById("puzzleSolutionSpan").style.display = 
-        "none";
-    document.getElementById("puzzleSolutionSpan").textContent = 
-        currentPuzzle.solution;
+	var puzzleInfoImg = document.getElementById("puzzleInfoImg");
+
+	puzzleInfoImg.style.display = "inline";
+	puzzleInfoImg.title = currentPuzzle.instructions + "\n" +
+		currentPuzzle.description;
+
+	document.getElementById("puzzleResetButton").style.display =
+		"inline";
+	document.getElementById("puzzleSolutionButton").style.display =
+		"inline";
+	document.getElementById("puzzleSolutionSpan").style.display =
+		"none";
+	document.getElementById("puzzleSolutionSpan").textContent =
+		currentPuzzle.solution;
 }
 
-function UpdateStockfish(moveObject)
-{
-	if(!stockfishIsReady) return;
+function UpdateStockfish(moveObject) {
+	if (!stockfishIsReady) return;
 
-	if(moveObject != null)
-	{
+	if (moveObject != null) {
 		var notation = moveObject.from + moveObject.to;
 
 		StockfishPostMessage("position fen " + chess.fen() + " moves " + notation);
@@ -1462,33 +1391,27 @@ function UpdateStockfish(moveObject)
 	UpdateStockfishMessage("Thinking...");
 }
 
-function UpdateStockfishMessage(message)
-{
+function UpdateStockfishMessage(message) {
 	document.getElementById("stockfishMessageSpan").textContent = message;
 }
 
-function UpdateTextAreas()
-{
+function UpdateTextAreas() {
 	document.getElementById("FENTextArea").value = chess.fen();
-	
+
 	UpdateMovesTextArea();
 }
 
-function UpdateTimer()
-{
+function UpdateTimer() {
 	var element = null;
 	var seconds = 0;
 
-	if(turn == 0)
-	{
+	if (turn == 0) {
 		whiteTimerSeconds = Math.max(whiteTimerSeconds - 1, 0);
 		element = document.getElementById("whiteTimerSpan");
 		seconds = whiteTimerSeconds;
 
-		if(!gameEnded)
-		{
-			if(seconds == 0)
-			{
+		if (!gameEnded) {
+			if (seconds == 0) {
 				gameEnded = true;
 				gameResult = "Out of time.";
 				gameScore = "0-1";
@@ -1497,16 +1420,13 @@ function UpdateTimer()
 			}
 		}
 	}
-	else
-	{
+	else {
 		blackTimerSeconds = Math.max(blackTimerSeconds - 1, 0);
 		element = document.getElementById("blackTimerSpan");
 		seconds = blackTimerSeconds;
 
-		if(!gameEnded)
-		{
-			if(seconds == 0)
-			{
+		if (!gameEnded) {
+			if (seconds == 0) {
 				gameEnded = true;
 				gameResult = "Out of time.";
 				gameScore = "0-1";
@@ -1520,20 +1440,17 @@ function UpdateTimer()
 }
 
 
-function loadGameButton_OnClick()
-{
+function loadGameButton_OnClick() {
 	var element = document.getElementById("loadGameInput");
 
 	element.click();
 }
 
-function movesTextArea_OnClick()
-{
+function movesTextArea_OnClick() {
 	UpdateMovesTextArea();
 }
 
-function openingsInput_OnInput()
-{
+function openingsInput_OnInput() {
 	var element = document.getElementById("openingsInput");
 
 	var filter = element.value;
@@ -1541,8 +1458,7 @@ function openingsInput_OnInput()
 	FillSelectWithOpenings(document.getElementById("openingsSelect"), filter);
 }
 
-function openingsSelect_OnChange()
-{
+function openingsSelect_OnChange() {
 	var element = document.getElementById("openingsSelect");
 
 	var index = element.selectedIndex;
@@ -1550,37 +1466,37 @@ function openingsSelect_OnChange()
 
 	var opening = GetOpeningByIndex(index, filter);
 
-	if(opening == null) return;
+	if (opening == null) return;
 
-	try
-	{
+	try {
 		SetMoves(opening.moves, true);
 	}
-	catch(error)
-	{
+	catch (error) {
 		alert(error);
 	}
 }
 
-function playerPlayAsSelect_OnChange()
-{
+function playerPlayAsSelect_OnChange() {
 	var element = document.getElementById("playerPlayAsSelect");
 
 	playerPlayAs = element.selectedIndex;
 
-	if(halfMovesHistory.length > 0)
+	if (halfMovesHistory.length > 0)
 		UpdateStockfish(halfMovesHistory[halfMovesHistory.length - 1]);
 	else
 		UpdateStockfish(null);
 }
 
-function stockfishEnableAsPlayerCheckbox_OnClick()
-{
+function puzzleInfoImg_OnClick() {
+	alert(document.getElementById("puzzleInfoImg").title);
+}
+
+function stockfishEnableAsPlayerCheckbox_OnClick() {
 	var element = document.getElementById("stockfishEnableAsPlayerCheckbox");
 
 	stockfishEnabledAsPlayer = element.checked;
 
-	if(halfMovesHistory.length > 0)
+	if (halfMovesHistory.length > 0)
 		UpdateStockfish(halfMovesHistory[halfMovesHistory.length - 1]);
 	else
 		UpdateStockfish(null);
