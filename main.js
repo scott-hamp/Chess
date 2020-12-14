@@ -578,6 +578,8 @@ function LoadRandomGame()
 			if (this.readyState !== 4) return;
 			if (this.status !== 200) return;
 
+			alert("response");
+
 			callback(this.responseText);
 		};
 
