@@ -567,6 +567,8 @@ function LoadRandomGame()
 
 	var loadHtml = function(path, callback) 
 	{
+		alert(path);
+		
 		var xhr = new XMLHttpRequest();
 
 		xhr.open('GET', path, true);
