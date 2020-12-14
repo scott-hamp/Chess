@@ -550,6 +550,8 @@ function LoadGame()
 			return;
 		}
 
+		SetMoveRelative(-1000);
+
 		lastGameLoaded = { tags: tags, moves: moves};
 
 		UpdateLastGameLoadedDetails();
